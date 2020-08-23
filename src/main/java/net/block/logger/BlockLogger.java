@@ -1,13 +1,10 @@
 package net.block.logger;
 
 import net.fabricmc.api.ModInitializer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.block.BlockState;
-import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.ActionResult;
 
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
+import net.fabricmc.fabric.api.event.player.UseBlockCallback;
+import net.minecraft.util.ActionResult;
 import net.block.logger.save.txt.readConfig;
 import net.block.logger.save.txt.write;
 import java.io.IOException;
@@ -19,9 +16,9 @@ public class BlockLogger implements ModInitializer {
         String path = readConfig.configContents();
         PlayerBlockBreakEvents.AFTER.register((world, player, pos, state, entity) -> {
             if(writeType==0){
-                String txtWriteData = "World = "+world+" & Player = "+player+" & Block position = X:"+pos.getX()+" Y:"+pos.getY()+" Z:"+pos.getZ()+" & Block replaced = "+state+" & Entity = "+entity;
+                String txtWriteDataBreak = "*Block break* (Block "+state+") detected at x="+pos.getX()+"; y="+pos.getY()+"; z="+pos.getZ()+". Block was broken by "+player;
                 try{
-                    write.writeToFile(txtWriteData, path);
+                    write.writeToFile(txtWriteDataBreak, path);
                 }
                 catch(IOException e){
                     e.printStackTrace();
@@ -29,6 +26,17 @@ public class BlockLogger implements ModInitializer {
                 
                 
             }
+        });
+        UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
+            String txtWriteDataPlace = "*Block place* (Block "+hitResult+") detected at x="+hand+"; y="+hand+"; z="+hand;
+            try{
+                write.writeToFile(txtWriteDataPlace, path);
+            }
+            catch(IOException e){
+                e.printStackTrace();
+            }
+            return ActionResult.PASS;
+
         });
     }
 }
