@@ -3,7 +3,7 @@ package net.block.logger.save.txt;
 import java.io.FileWriter;
 import java.io.IOException;
 
-public class write {
+public class Write {
 
     public static void writeToFile(String data, String path) throws IOException {
         
