@@ -19,10 +19,10 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.block.logger.BlockLogger"
+      "tech.dttp.block.logger.BlockLogger"
     ]
   },
-  "mixin": [
+  "mixins": [
     "blocklogger.mixins.json"
   ],
   "depends": {

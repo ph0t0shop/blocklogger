@@ -1,0 +1,14 @@
+{
+  "mappings": {
+    "tech/dttp/block/logger/mixin/ExampleMixin": {
+      "interactBlock": "Lnet/minecraft/class_3225;method_14262(Lnet/minecraft/class_3222;Lnet/minecraft/class_1937;Lnet/minecraft/class_1799;Lnet/minecraft/class_1268;Lnet/minecraft/class_3965;)Lnet/minecraft/class_1269;"
+    }
+  },
+  "data": {
+    "named:intermediary": {
+      "tech/dttp/block/logger/mixin/ExampleMixin": {
+        "interactBlock": "Lnet/minecraft/class_3225;method_14262(Lnet/minecraft/class_3222;Lnet/minecraft/class_1937;Lnet/minecraft/class_1799;Lnet/minecraft/class_1268;Lnet/minecraft/class_3965;)Lnet/minecraft/class_1269;"
+      }
+    }
+  }
+}

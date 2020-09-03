@@ -62,7 +62,7 @@ tutorialStep:none
 mouseWheelSensitivity:1.0
 rawMouseInput:true
 glDebugVerbosity:1
-skipMultiplayerWarning:false
+skipMultiplayerWarning:true
 syncChunkWrites:true
 key_key.attack:key.mouse.left
 key_key.use:key.mouse.right

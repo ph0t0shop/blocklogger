@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "blocklogger",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
 
   "name": "Block logger",
   "description": "A block logging tool for fabric",
@@ -10,7 +10,7 @@
   ],
   "contact": {
     "homepage": "https:/mods.dttp.tech",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "sources": "https://github.com/yitzy299/block-logger"
   },
 
   "license": "CC0-1.0",
@@ -19,15 +19,15 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.block.logger.BlockLogger"
+      "tech.dttp.block.logger.BlockLogger"
     ]
   },
-  "mixin": [
+  "mixins": [
     "blocklogger.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.7.4",
-    "fabric": "*",
+    "fabricloader": ">=0.9.1",
+    "fabric": ">=0.19.0",
     "minecraft": "1.16.2"
   },
   "suggests": {

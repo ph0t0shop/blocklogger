@@ -1,0 +1,15 @@
+{
+  "minecraft:recipes/building_blocks/warped_planks": {
+    "criteria": {
+      "has_logs": "2020-08-29 16:57:33 +0100"
+    },
+    "done": true
+  },
+  "minecraft:adventure/adventuring_time": {
+    "criteria": {
+      "minecraft:plains": "2020-08-29 16:57:33 +0100"
+    },
+    "done": false
+  },
+  "DataVersion": 2578
+}
