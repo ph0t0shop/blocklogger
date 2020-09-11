@@ -43,13 +43,6 @@ public class BlockLogger implements ModInitializer {
             }
         });
         //todo: Block placement pos via hitresult
-        UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
-            return ActionResult.PASS;
-        });
-        PlaceBlockCallback.EVENT.register((player, world, hand, hitResult, pos) -> {
-            System.out.println("HALLO");
-            return ActionResult.FAIL;
-        });
     }
 }
 
