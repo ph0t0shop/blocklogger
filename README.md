@@ -12,7 +12,7 @@ Blocklogger (as of v0.1) saves the log to a txt file in the game directory calle
 ## Block breaks
 ### v0.1 and below 
 Found in blocklogger.txt as a block break + information 
-### v0.2-alpha.1
+### v0.2-alpha.1 and above
 Information is saved to blocklogger/log.db 
 Accessible via command /bl x y z
 
