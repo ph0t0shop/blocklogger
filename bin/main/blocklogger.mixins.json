@@ -1,14 +1,13 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "net.block.logger.mixin",
+  "package": "tech.ducktools.block.logger.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
   ],
   "client": [
   ],
   "server": [
-    "ExampleMixin"
   ],
   "injectors": {
     "defaultRequire": 1
