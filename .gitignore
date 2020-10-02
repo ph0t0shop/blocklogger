@@ -13,6 +13,7 @@
 
 # Package Files #
 *.jar
+!sqlite-jdbc-3.32.3.2.jar
 *.war
 *.nar
 *.ear
