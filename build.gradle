@@ -52,6 +52,7 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 
 jar {
 	from "LICENSE"
+compile fileTree(dir: 'libs', include: '*.jar')
 }
 
 // configure the maven publication
