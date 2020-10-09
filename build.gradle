@@ -17,9 +17,10 @@ dependencies {
             
     //Fabric api
     modImplementation "net.fabricmc.fabric-api:fabric-api:0.22.1+build.409-1.16"
-
 	//SQLite
-	implementation fileTree(dir: 'libs', include: ['*.jar'])
+	//implementation fileTree(dir: 'libs', include: ['*.jar'])
+	include group: 'org.xerial', name: 'sqlite-jdbc', version: '3.32.3.2'
+	implementation group: 'org.xerial', name: 'sqlite-jdbc', version: '3.32.3.2'
 }
 
 processResources {
@@ -52,9 +53,7 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 
 jar {
 	from "LICENSE"
-compile fileTree(dir: 'libs', include: '*.jar')
 }
-
 // configure the maven publication
 publishing {
 	publications {

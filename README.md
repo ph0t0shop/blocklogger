@@ -6,7 +6,7 @@ A block change logging tool for the Fabric mod loader. Part of the FabricAdmin s
 - [X] Save to a SQLite database rather than a TXT file
 
 # Use
-Blocklogger (as of v0.1) saves the log to a txt file in the game directory called blocklogger.txt 
+Blocklogger (as of v0.2) saves the log to a file named interactions.bl in the game directory. Access via the command (Not yet implemented) /bl x y z
 
 ## Block breaks
 ### v0.1 and below 
