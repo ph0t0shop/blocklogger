@@ -45,11 +45,9 @@ public class DbConn {
         try {
             String sql = "INSERT INTO breakPlace(x, y, z, broken, state, player, time) VALUES(?,?,?,?,?,?,?)";
             PreparedStatement ps = con.prepareStatement(sql);
-            //x = 123;
+            //Set the values added to SQL to the values given by the player
             ps.setInt(1, x);
-            //y = 67;
             ps.setInt(2, y);
-            //z = 124;
             ps.setInt(3, z);
             //Was block broken?
             ps.setBoolean(4, broken); 
@@ -59,7 +57,7 @@ public class DbConn {
             ps.setString(6, generatePlayer(player));
             // time
             ps.setLong(7, Instant.now().getEpochSecond());
-            //
+            //Execute query
             ps.execute();
             System.out.println("[BL] Saved data");
 

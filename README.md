@@ -4,7 +4,7 @@ A block change logging tool for the Fabric mod loader. Part of the FabricAdmin s
 ## Todo
 - [ ] Return the position of a block place
 - [ ] Add container transactions (Pos, player, items removed)
-- [ ] Add /bl i
+- [X] Add /bl i
 
 ## Develop
 How can you help develop blocklogger?
@@ -33,3 +33,5 @@ Open in your IDE, and open a terminal. Run the following commands:
 ./gradlew build
 ```
 The .jar files are located in build/libs
+# License
+Blocklogger is licensed under the GNU GPL v3.0, found in license.txt
