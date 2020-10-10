@@ -8,6 +8,19 @@
 # BlueJ files
 *.ctxt
 
+# Eclipse files
+.classpath
+.project
+.settings
+
+# Intellij Idea files
+.idea
+.iml
+.ipr
+
+# VSCode files
+.vscode
+
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
