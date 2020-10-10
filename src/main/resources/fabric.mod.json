@@ -3,7 +3,7 @@
   "id": "blocklogger",
   "version": "${version}",
 
-  "name": "Block logger",
+  "name": "Blocklogger",
   "description": "A block logging tool for fabric",
   "authors": [
     "Yitzy"

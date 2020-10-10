@@ -1,38 +1,25 @@
 package tech.dttp.block.logger;
 
 import net.fabricmc.api.ModInitializer;
-
+import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 
 import tech.dttp.block.logger.save.sql.DbConn;
-import tech.dttp.block.logger.save.txt.ReadConfig;
-import tech.dttp.block.logger.save.txt.TxtWrite;
-
-import java.io.IOException;
+import tech.dttp.block.logger.command.Commands;
 
 public class BlockLogger implements ModInitializer {
     @Override
     public void onInitialize() {
+        //Register commands
+        CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {
+            Commands.register(dispatcher);
+        });
         DbConn.connect();
-        int writeType = 0;
-        String path = ReadConfig.configContents();
+        System.out.println("[BL] Connected to database");
         PlayerBlockBreakEvents.AFTER.register((world, player, pos, state, entity) -> {
             //SQL
-            DbConn.writeDestroyPlace(pos.getX(), pos.getY(), pos.getZ(), true, state, player);
-            DbConn.readDataBreakPlace();
-            //TXT 
-            //"Remove when SQL done" - yitzy299, 2020
-            if(writeType==0){
-                String txtWriteDataBreak = "*Block break* (Block "+state+") detected at x="+pos.getX()+"; y="+pos.getY()+"; z="+pos.getZ()+". Block was broken by "+player;
-                try{
-                    TxtWrite.writeToFile(txtWriteDataBreak, path);
-                }
-                catch(IOException e){
-                    e.printStackTrace();
-                }
-                
-                
-            }
+            //Write to database every time a block is broken
+            DbConn.writeBreakPlace(pos.getX(), pos.getY(), pos.getZ(), true, state, player);
         });
         //todo: Block placement pos via hitresult
     }

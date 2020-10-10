@@ -15,14 +15,13 @@ public class DbConn {
         try {
             Class.forName("org.sqlite.JDBC");
             con = DriverManager.getConnection("jdbc:sqlite:interactions.bl");
-            System.out.println("[BL] Connected to database");
         } catch (ClassNotFoundException | SQLException e) {
             System.out.println(e + "");
         }
         return con;
     }
 
-    public static void writeDestroyPlace(int x, int y, int z, Boolean broken, BlockState state, PlayerEntity player) {
+    public static void writeBreakPlace(int x, int y, int z, Boolean broken, BlockState state, PlayerEntity player) {
         Connection con = DbConn.connect();
         PreparedStatement ps = null;
         try {
@@ -59,12 +58,14 @@ public class DbConn {
         }
     }
 
-    public static void readDataBreakPlace() {
+    public static void readDataBreakPlace(int x,int y, int z) {
         Connection con = DbConn.connect();
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
-            String sql = "SELECT x,y,z,broken,state,player,time FROM breakPlace;";
+            System.out.println("Attempting to read data");
+            String sql = "SELECT x,y,z,broken,state,player,time FROM breakPlace WHERE x="+x+" AND y="+y+" AND z="+z+";";
+            System.out.println(sql);
             ps = con.prepareStatement(sql);
             rs = ps.executeQuery();
             // Repeat for every entry
@@ -73,16 +74,6 @@ public class DbConn {
                 // Broken?
                 boolean broken = rs.getBoolean("broken");
                 System.out.println("Broken=" + broken);
-                // Get coords
-                // x
-                int x = rs.getInt("x");
-                System.out.println("X=" + x);
-                // y
-                int y = rs.getInt("y");
-                System.out.println("Y=" + y);
-                // z
-                int z = rs.getInt("z");
-                System.out.println("Z=" + z);
                 // State
                 String state = rs.getString("state");
                 System.out.println("Block interacted with=" + state);
