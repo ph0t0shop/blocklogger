@@ -4,6 +4,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.WorldSavePath;
+import tech.dttp.block.logger.LoggedEventType;
 import tech.dttp.block.logger.util.PlayerUtils;
 
 import java.io.File;
@@ -48,7 +49,7 @@ public class DbConn {
         try {
             String sql = "INSERT INTO events(type, x, y, z, dimension, oldstate, newstate, player, time) VALUES(?,?,?,?,?,?,?,?,?)";
             PreparedStatement ps = con.prepareStatement(sql);
-            ps.setString(1, "break");
+            ps.setString(1, LoggedEventType.BREAK.name());
             ps.setInt(2, x);
             ps.setInt(3, y);
             ps.setInt(4, z);
@@ -65,7 +66,7 @@ public class DbConn {
         }
     }
 
-    public static void readEvents(int x, int y, int z, String dimension) {
+    public static void readEvents(int x, int y, int z, String dimension, LoggedEventType eventType) {
         if (con == null) {
             throw new IllegalStateException("Database connection not initialized");
         }
@@ -74,12 +75,18 @@ public class DbConn {
         try {
             System.out.println("Attempting to read data");
             String sql = "SELECT type,x,y,z,dimension,oldstate,newstate,player,time,rolledbackat FROM events WHERE x=? AND y=? AND z=? AND dimension=?";
+            if (eventType != null) {
+                sql += " AND type=?";
+            }
             System.out.println(sql);
             ps = con.prepareStatement(sql);
             ps.setInt(1, x);
             ps.setInt(2, y);
             ps.setInt(3, z);
             ps.setString(4, dimension);
+            if (eventType != null) {
+                ps.setString(5, eventType.name());
+            }
             rs = ps.executeQuery();
             // Repeat for every entry
             StringBuilder sb = new StringBuilder();

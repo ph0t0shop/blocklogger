@@ -39,7 +39,7 @@ public final class Commands {
         int y = pos.getY();
         int z = pos.getZ();
         RegistryKey<World> key = world.getRegistryKey();
-        DbConn.readEvents(x, y, z, key.getValue().getNamespace() + ":" + key.getValue().getPath());
+        DbConn.readEvents(x, y, z, key.getValue().getNamespace() + ":" + key.getValue().getPath(), null);
         return 1;
     }
 }
