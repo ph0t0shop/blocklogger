@@ -10,23 +10,37 @@ import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 
 public class DbConn {
-    public static Connection connect() {
-        Connection con = null;
+    private static Connection con = null;
+
+    public static void connect() {
         try {
             Class.forName("org.sqlite.JDBC");
             con = DriverManager.getConnection("jdbc:sqlite:interactions.bl");
+            ensureTable("breakPlace", "(x INT NOT NULL,y INT NOT NULL,z INT NOT NULL,broken BOOLEAN,state VARCHAR, player STRING, time STRING)");
         } catch (ClassNotFoundException | SQLException e) {
             System.out.println(e + "");
         }
-        return con;
+    }
+
+    private static void ensureTable(String name, String description) {
+        String sql = "CREATE TABLE IF NOT EXISTS " + name + " " + description + ";";
+        try {
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.execute();
+
+            System.out.println("[BL] prepared table");
+        } catch (SQLException e1) {
+            e1.printStackTrace();
+        }
     }
 
     public static void writeBreakPlace(int x, int y, int z, Boolean broken, BlockState state, PlayerEntity player) {
-        Connection con = DbConn.connect();
-        PreparedStatement ps = null;
+        if (con == null) {
+            throw new IllegalStateException("Database connection not initialized");
+        }
         try {
             String sql = "INSERT INTO breakPlace(x, y, z, broken, state, player, time) VALUES(?,?,?,?,?,?,?)";
-            ps = con.prepareStatement(sql);
+            PreparedStatement ps = con.prepareStatement(sql);
             //x = 123;
             ps.setInt(1, x);
             //y = 67;
@@ -46,22 +60,16 @@ public class DbConn {
             System.out.println("[BL] Saved data");
 
         } catch (SQLException e) {
-            String sql = "CREATE TABLE breakPlace (x INT NOT NULL,y INT NOT NULL,z INT NOT NULL,broken BOOLEAN,state VARCHAR, player STRING, time STRING);";
-            try {
-                ps = con.prepareStatement(sql);
-                ps.execute();
-
-                System.out.println("[BL] prepared table");
-            } catch (SQLException e1) {
-                e1.printStackTrace();
-            }
+            e.printStackTrace();
         }
     }
 
     public static void readDataBreakPlace(int x,int y, int z) {
-        Connection con = DbConn.connect();
-        PreparedStatement ps = null;
-        ResultSet rs = null;
+        if (con == null) {
+            throw new IllegalStateException("Database connection not initialized");
+        }
+        PreparedStatement ps;
+        ResultSet rs;
         try {
             System.out.println("Attempting to read data");
             String sql = "SELECT x,y,z,broken,state,player,time FROM breakPlace WHERE x="+x+" AND y="+y+" AND z="+z+";";
