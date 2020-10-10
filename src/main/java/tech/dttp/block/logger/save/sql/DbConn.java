@@ -1,28 +1,31 @@
 package tech.dttp.block.logger.save.sql;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.WorldSavePath;
+import tech.dttp.block.logger.util.PlayerUtils;
+
+import java.io.File;
+import java.sql.*;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
 
 public class DbConn {
     private static Connection con = null;
     private static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z").withZone(ZoneId.systemDefault()); // year-month-day hour:minute:second timezone
 
-    public static void connect() {
+    public static void connect(MinecraftServer server) {
         try {
             Class.forName("org.sqlite.JDBC");
-            con = DriverManager.getConnection("jdbc:sqlite:interactions.bl");
-            ensureTable("breakPlace", "(x INT NOT NULL,y INT NOT NULL,z INT NOT NULL,broken BOOLEAN,state VARCHAR, player STRING, time INT)");
+            File databaseFile;
+            databaseFile = new File(server.getSavePath(WorldSavePath.ROOT).toFile(), "interactions.bl");
+            con = DriverManager.getConnection("jdbc:sqlite:" + databaseFile.getPath().replace('\\', '/'));
+            ensureTable("events", "(type STRING, x INT NOT NULL, y INT NOT NULL, z INT NOT NULL, dimension STRING NOT NULL, oldstate STRING, newstate STRING, player STRING, time INT, rolledbackat INT DEFAULT -1)");
+            System.out.println("[BL] Connected to database");
         } catch (ClassNotFoundException | SQLException e) {
-            System.out.println(e + "");
+            e.printStackTrace();
         }
     }
 
@@ -38,26 +41,22 @@ public class DbConn {
         }
     }
 
-    public static void writeBreakPlace(int x, int y, int z, Boolean broken, BlockState state, PlayerEntity player) {
+    public static void writeBreak(int x, int y, int z, BlockState state, PlayerEntity player) {
         if (con == null) {
             throw new IllegalStateException("Database connection not initialized");
         }
         try {
-            String sql = "INSERT INTO breakPlace(x, y, z, broken, state, player, time) VALUES(?,?,?,?,?,?,?)";
+            String sql = "INSERT INTO events(type, x, y, z, dimension, oldstate, newstate, player, time) VALUES(?,?,?,?,?,?,?,?,?)";
             PreparedStatement ps = con.prepareStatement(sql);
-            //Set the values added to SQL to the values given by the player
-            ps.setInt(1, x);
-            ps.setInt(2, y);
-            ps.setInt(3, z);
-            //Was block broken?
-            ps.setBoolean(4, broken); 
-            //Blockstate
-            ps.setString(5, state.toString());
-            //player
-            ps.setString(6, generatePlayer(player));
-            // time
-            ps.setLong(7, Instant.now().getEpochSecond());
-            //Execute query
+            ps.setString(1, "break");
+            ps.setInt(2, x);
+            ps.setInt(3, y);
+            ps.setInt(4, z);
+            ps.setString(5, PlayerUtils.getPlayerDimension(player));
+            ps.setString(6, state.toString());
+            ps.setString(7, null);
+            ps.setString(8, getPlayerUuid(player));
+            ps.setLong(9, Instant.now().getEpochSecond());
             ps.execute();
             System.out.println("[BL] Saved data");
 
@@ -66,7 +65,7 @@ public class DbConn {
         }
     }
 
-    public static void readDataBreakPlace(int x,int y, int z) {
+    public static void readEvents(int x, int y, int z, String dimension) {
         if (con == null) {
             throw new IllegalStateException("Database connection not initialized");
         }
@@ -74,43 +73,33 @@ public class DbConn {
         ResultSet rs;
         try {
             System.out.println("Attempting to read data");
-            String sql = "SELECT x,y,z,broken,state,player,time FROM breakPlace WHERE x="+x+" AND y="+y+" AND z="+z+";";
+            String sql = "SELECT type,x,y,z,dimension,oldstate,newstate,player,time,rolledbackat FROM events WHERE x=? AND y=? AND z=? AND dimension=?";
             System.out.println(sql);
             ps = con.prepareStatement(sql);
+            ps.setInt(1, x);
+            ps.setInt(2, y);
+            ps.setInt(3, z);
+            ps.setString(4, dimension);
             rs = ps.executeQuery();
             // Repeat for every entry
+            StringBuilder sb = new StringBuilder();
+            sb.append("----- BlockLogger -----\n");
             while (rs.next()) {
-                // print values
-                // Broken?
-                boolean broken = rs.getBoolean("broken");
-                System.out.println("Broken=" + broken);
-                // State
-                String state = rs.getString("state");
-                System.out.println("Block interacted with=" + state);
-                // Player
-                String player = rs.getString("player");
-                System.out.println(player);
-                long time = rs.getLong("time");
-                System.out.println(timeFormatter.format(Instant.ofEpochSecond(time)));
+                sb.append(rs.getString("type"));
+                sb.append(" Old: ").append(rs.getString("oldstate"));
+                sb.append(" New: ").append(rs.getString("newstate"));
+                sb.append(" Player: ").append(rs.getString("player"));
+                sb.append(" At: ").append(timeFormatter.format(Instant.ofEpochSecond(rs.getLong("time"))));
+                sb.append(" Rolled Back? ").append(rs.getLong("rolledbackat") >= 0);
+                sb.append("\n");
             }
+            System.out.println(sb.toString());
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    public static String generatePlayer(PlayerEntity player) {
-        String playerStringManipulate = player.toString();
-        //get rid of start part
-        playerStringManipulate = playerStringManipulate.replace("ServerPlayerEntity['", "");
-        //delete all after /
-        playerStringManipulate = playerStringManipulate.split("/")[0];
-        //delete quotes
-        playerStringManipulate = playerStringManipulate.replace("'", "");
-        //trim
-        playerStringManipulate = playerStringManipulate.trim();
-        String playerString = playerStringManipulate;
-        System.out.println(playerString);
-        return playerString;
+    public static String getPlayerUuid(PlayerEntity player) {
+        return player.getUuidAsString();
     }
-	 
 }
