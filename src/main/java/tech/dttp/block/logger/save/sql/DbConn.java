@@ -5,18 +5,22 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 
 public class DbConn {
     private static Connection con = null;
+    private static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z").withZone(ZoneId.systemDefault()); // year-month-day hour:minute:second timezone
 
     public static void connect() {
         try {
             Class.forName("org.sqlite.JDBC");
             con = DriverManager.getConnection("jdbc:sqlite:interactions.bl");
-            ensureTable("breakPlace", "(x INT NOT NULL,y INT NOT NULL,z INT NOT NULL,broken BOOLEAN,state VARCHAR, player STRING, time STRING)");
+            ensureTable("breakPlace", "(x INT NOT NULL,y INT NOT NULL,z INT NOT NULL,broken BOOLEAN,state VARCHAR, player STRING, time INT)");
         } catch (ClassNotFoundException | SQLException e) {
             System.out.println(e + "");
         }
@@ -54,7 +58,7 @@ public class DbConn {
             //player
             ps.setString(6, generatePlayer(player));
             // time
-            ps.setString(7, "17:31 2020-10-07");
+            ps.setLong(7, Instant.now().getEpochSecond());
             //
             ps.execute();
             System.out.println("[BL] Saved data");
@@ -88,11 +92,11 @@ public class DbConn {
                 // Player
                 String player = rs.getString("player");
                 System.out.println(player);
-                String time = rs.getString("time");
-                System.out.println(time);
+                long time = rs.getLong("time");
+                System.out.println(timeFormatter.format(Instant.ofEpochSecond(time)));
             }
         } catch (SQLException e) {
-            System.out.println(e + "");
+            e.printStackTrace();
         }
     }
 
