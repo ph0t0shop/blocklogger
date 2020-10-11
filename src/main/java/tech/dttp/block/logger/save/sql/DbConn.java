@@ -3,10 +3,12 @@ package tech.dttp.block.logger.save.sql;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.world.World;
 import tech.dttp.block.logger.LoggedEventType;
 import tech.dttp.block.logger.util.PlayerUtils;
+import tech.dttp.block.logger.util.PrintToChat;
 
 import java.io.File;
 import java.sql.*;
@@ -16,7 +18,7 @@ import java.time.format.DateTimeFormatter;
 
 public class DbConn {
     private static Connection con = null;
-    private static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z")
+    private final static DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z")
             .withZone(ZoneId.systemDefault()); // year-month-day hour:minute:second timezone
 
     public static void connect(MinecraftServer server) {
@@ -28,7 +30,7 @@ public class DbConn {
             con = DriverManager.getConnection("jdbc:sqlite:" + databaseFile.getPath().replace('\\', '/'));
             // Check if table exists
             ensureTable("events",
-                    "(type STRING, x INT NOT NULL, y INT NOT NULL, z INT NOT NULL, dimension STRING NOT NULL, oldstate STRING, newstate STRING, player STRING, world STRING, time INT, rolledbackat INT DEFAULT -1)");
+                "(type STRING, x INT NOT NULL, y INT NOT NULL, z INT NOT NULL, dimension STRING NOT NULL, oldstate STRING, newstate STRING, player STRING, world STRING, time INT, rolledbackat INT DEFAULT -1)");
             System.out.println("[BL] Connected to database");
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
@@ -36,7 +38,7 @@ public class DbConn {
     }
 
     private static void ensureTable(String name, String description) {
-        //Create table if it doesn't exist
+        // Create table if it doesn't exist
         String sql = "CREATE TABLE IF NOT EXISTS " + name + " " + description + ";";
         try {
             PreparedStatement ps = con.prepareStatement(sql);
@@ -50,14 +52,14 @@ public class DbConn {
 
     public static void writeBreak(int x, int y, int z, BlockState state, PlayerEntity player, World world) {
         if (con == null) {
-            //Check if database isn't connected
+            // Check if database isn't connected
             throw new IllegalStateException("Database connection not initialized");
         }
         try {
-            //Save data
+            // Save data
             String sql = "INSERT INTO events(type, x, y, z, dimension, oldstate, newstate, player, world, time) VALUES(?,?,?,?,?,?,?,?,?,?)";
             PreparedStatement ps = con.prepareStatement(sql);
-            //set values to insert
+            // set values to insert
             ps.setString(1, LoggedEventType.BREAK.name());
             ps.setInt(2, x);
             ps.setInt(3, y);
@@ -76,8 +78,9 @@ public class DbConn {
         }
     }
 
-    public static void readEvents(int x, int y, int z, String dimension, LoggedEventType eventType) {
-        //Check if database is connected
+    public static void readEvents(int x, int y, int z, String dimension, LoggedEventType eventType,
+            ServerCommandSource source) {
+        // Check if database is connected
         if (con == null) {
             throw new IllegalStateException("Database connection not initialized");
         }
@@ -109,6 +112,7 @@ public class DbConn {
                 sb.append(" At: ").append(timeFormatter.format(Instant.ofEpochSecond(rs.getLong("time"))));
                 sb.append(" Rolled Back? ").append(rs.getLong("rolledbackat") >= 0);
                 sb.append("\n");
+                PrintToChat.print("Hi", source);
             }
             System.out.println(sb.toString());
         } catch (SQLException e) {

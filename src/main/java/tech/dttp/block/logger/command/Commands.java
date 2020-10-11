@@ -19,19 +19,18 @@ public final class Commands {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(
                 literal("bl")
-                        .requires(scs -> scs.hasPermissionLevel(3))
+                    .requires(scs -> scs.hasPermissionLevel(3))
                         .then(literal("i")
                                 .then(argument("pos", BlockPosArgumentType.blockPos())
                                         .then(argument("dimension", DimensionArgumentType.dimension())
                                                 .executes(scs -> getEventsAt(scs.getSource(), BlockPosArgumentType.getBlockPos(scs, "pos"), DimensionArgumentType.getDimensionArgument(scs, "dimension")))
                                         )
-                                        .executes(scs -> getEventsAt(scs.getSource(), BlockPosArgumentType.getBlockPos(scs, "pos"), null))
-                                )
-                        )
-        );
+                                        .executes(scs -> getEventsAt(scs.getSource(),
+                                                BlockPosArgumentType.getBlockPos(scs, "pos"), null)))));
     }
 
-    private static int getEventsAt(ServerCommandSource scs, BlockPos pos, ServerWorld world) throws CommandSyntaxException {
+    private static int getEventsAt(ServerCommandSource scs, BlockPos pos, ServerWorld world)
+            throws CommandSyntaxException {
         if (world == null) {
             world = scs.getPlayer().getServerWorld();
         }
@@ -39,7 +38,7 @@ public final class Commands {
         int y = pos.getY();
         int z = pos.getZ();
         RegistryKey<World> key = world.getRegistryKey();
-        DbConn.readEvents(x, y, z, key.getValue().getNamespace() + ":" + key.getValue().getPath(), null);
+        DbConn.readEvents(x, y, z, key.getValue().getNamespace() + ":" + key.getValue().getPath(), null, scs);
         return 1;
     }
 }
