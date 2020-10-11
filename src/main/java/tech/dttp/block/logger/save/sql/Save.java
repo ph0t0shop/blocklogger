@@ -4,9 +4,9 @@ import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 
 public class Save {
-    public void save(int x, int y, int z, boolean broken, BlockState state, PlayerEntity player){
+    public void saveBreak(int x, int y, int z, BlockState state, PlayerEntity player){
         //Save to database
-        DbConn.writeBreakPlace(x, y, z, broken, state, player);
+        DbConn.writeBreak(x, y, z, state, player);
     }
 
 }

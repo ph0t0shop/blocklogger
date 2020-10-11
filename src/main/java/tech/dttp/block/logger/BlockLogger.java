@@ -2,6 +2,7 @@ package tech.dttp.block.logger;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 
 import tech.dttp.block.logger.save.sql.DbConn;
@@ -14,12 +15,11 @@ public class BlockLogger implements ModInitializer {
         CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {
             Commands.register(dispatcher);
         });
-        DbConn.connect();
-        System.out.println("[BL] Connected to database");
+        ServerLifecycleEvents.SERVER_STARTED.register(DbConn::connect);
         PlayerBlockBreakEvents.AFTER.register((world, player, pos, state, entity) -> {
             //SQL
             //Write to database every time a block is broken
-            DbConn.writeBreakPlace(pos.getX(), pos.getY(), pos.getZ(), true, state, player);
+            DbConn.writeBreak(pos.getX(), pos.getY(), pos.getZ(), state, player);
         });
         //todo: Block placement pos via hitresult
     }
