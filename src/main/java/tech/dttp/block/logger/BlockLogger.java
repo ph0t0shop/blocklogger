@@ -16,12 +16,19 @@ public class BlockLogger implements ModInitializer {
             Commands.register(dispatcher);
         });
         ServerLifecycleEvents.SERVER_STARTED.register(DbConn::connect);
+        //Block break
         PlayerBlockBreakEvents.AFTER.register((world, player, pos, state, entity) -> {
             //SQL
             //Write to database every time a block is broken
-            DbConn.writeBreak(pos.getX(), pos.getY(), pos.getZ(), state, player);
+            DbConn.writeBreak(pos.getX(), pos.getY(), pos.getZ(), state, player, world);
         });
+        //Close DB connection when world is closed
+        ServerLifecycleEvents.SERVER_STOPPED.register((server) -> {
+            DbConn.close();
+        });
+
         //todo: Block placement pos via hitresult
+
     }
 }
 
