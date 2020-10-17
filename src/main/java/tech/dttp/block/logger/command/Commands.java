@@ -4,6 +4,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.command.argument.BlockPosArgumentType;
 import net.minecraft.command.argument.DimensionArgumentType;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -12,11 +13,16 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 import tech.dttp.block.logger.save.sql.DbConn;
+import tech.dttp.block.logger.util.PrintToChat;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
+import java.util.Arrays;
+import java.util.UUID;
+
 public final class Commands {
+
         public void register(CommandDispatcher<ServerCommandSource> dispatcher) {
                 dispatcher.register(
                         literal("bl")
@@ -41,13 +47,14 @@ public final class Commands {
                 print(scs, pos, world); 
                 return 1;
         }
-        private void print(ServerCommandSource scs, BlockPos pos, ServerWorld world){
+        private void print(ServerCommandSource scs, BlockPos pos, ServerWorld world) throws CommandSyntaxException{
                 int x = pos.getX();
                 int y = pos.getY();
                 int z = pos.getZ();
                 RegistryKey<World> key = world.getRegistryKey();
                 String[] data = DbConn.readEvents(x, y, z, key.getValue().getNamespace() + ":" + key.getValue().getPath(), null);
                 //PlayerManager.broadcastChatMessage
+                PrintToChat.print(scs.getPlayer(), Arrays.toString(data));
         }
         
 }
