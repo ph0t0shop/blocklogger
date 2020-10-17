@@ -1,7 +1,7 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "tech.ducktools.block.logger.mixin",
+  "package": "tech.dttp.block.logger.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
   ],
