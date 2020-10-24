@@ -1,20 +1,23 @@
 package tech.dttp.block.logger.save.sql;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.entity.EntityDimensions;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.text.Text;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.world.World;
-import net.minecraft.world.dimension.DimensionType;
 import tech.dttp.block.logger.LoggedEventType;
 import tech.dttp.block.logger.util.PlayerUtils;
+import tech.dttp.block.logger.util.PrintToChat;
 
 import java.io.File;
 import java.sql.*;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 public class DbConn {
     private static Connection con = null;
@@ -26,11 +29,11 @@ public class DbConn {
             Class.forName("org.sqlite.JDBC");
             File databaseFile;
             // Database file
-            databaseFile = new File(server.getSavePath(WorldSavePath.ROOT).toFile(), "interactions.bl");
+            databaseFile = new File(server.getSavePath(WorldSavePath.ROOT).toFile(), "blocklogger.bl");
             con = DriverManager.getConnection("jdbc:sqlite:" + databaseFile.getPath().replace('\\', '/'));
             // Check if table exists
-            ensureTable("events",
-                    "(type STRING, x INT NOT NULL, y INT NOT NULL, z INT NOT NULL, dimension STRING NOT NULL, oldstate STRING, newstate STRING, player STRING, world STRING, time INT, rolledbackat INT DEFAULT -1)");
+            ensureTable("interactions",
+                    "(type STRING, x INT NOT NULL, y INT NOT NULL, z INT NOT NULL, dimension STRING NOT NULL, state STRING, player STRING, time INT, rolledbackat INT DEFAULT -1)");
             System.out.println("[BL] Connected to database");
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
@@ -57,19 +60,17 @@ public class DbConn {
         }
         try {
             // Save data
-            String sql = "INSERT INTO events(type, x, y, z, dimension, oldstate, newstate, player, world, time) VALUES(?,?,?,?,?,?,?,?,?,?)";
+            String sql = "INSERT INTO interactions(type, x, y, z, dimension, state, player, time) VALUES(?,?,?,?,?,?,?,?)";
             PreparedStatement ps = con.prepareStatement(sql);
             // set values to insert
-            ps.setString(1, LoggedEventType.BREAK.name());
+            ps.setString(1, LoggedEventType.broken.name());
             ps.setInt(2, x);
             ps.setInt(3, y);
             ps.setInt(4, z);
             ps.setString(5, PlayerUtils.getPlayerDimension(player));
             ps.setString(6, state.toString());
-            ps.setString(7, null);
-            ps.setString(8, getPlayerUuid(player));
-            ps.setString(9, world.toString());
-            ps.setLong(10, Instant.now().getEpochSecond());
+            ps.setString(7, getPlayerName(player));
+            ps.setLong(8, Instant.now().getEpochSecond());
             ps.execute();
             System.out.println("[BL] Saved data");
 
@@ -78,7 +79,7 @@ public class DbConn {
         }
     }
 
-    public static String[] readEvents(int x, int y, int z, String dimension, LoggedEventType eventType) {
+    public static void readEvents(int x, int y, int z, String dimension, LoggedEventType eventType, ServerCommandSource scs) {
         // Check if database is connected
         if (con == null) {
             throw new IllegalStateException("Database connection not initialized");
@@ -86,8 +87,15 @@ public class DbConn {
         PreparedStatement ps;
         ResultSet rs;
         try {
-            System.out.println("Attempting to read data");
-            String sql = "SELECT type,x,y,z,dimension,oldstate,newstate,player,time,world,rolledbackat FROM events WHERE x=? AND y=? AND z=? AND dimension=?";
+            //Print initial read to chat - Blocklogger data for X, Y, Z
+            String message = "Blocklogger data for "+x+", "+y+", "+z+" in "+dimension;
+            try {
+                PrintToChat.print(scs.getPlayer(), message);
+            } catch (CommandSyntaxException e) {
+                e.printStackTrace();
+            }
+            //Read data
+            String sql = "SELECT type,x,y,z,dimension,state,player,time,rolledbackat FROM interactions WHERE x=? AND y=? AND z=? AND dimension=?";
             if (eventType != null) {
                 sql += " AND type=?";
             }
@@ -101,18 +109,7 @@ public class DbConn {
             }
             rs = ps.executeQuery();
             // Repeat for every entry
-            /*StringBuilder sb = new StringBuilder();
-            sb.append("----- BlockLogger -----\n");*/
             while (rs.next()) {
-                /*
-                sb.append(rs.getString("type"));
-                sb.append(" Old: ").append(rs.getString("oldstate"));
-                sb.append(" New: ").append(rs.getString("newstate"));
-                sb.append(" Player: ").append(rs.getString("player"));
-                sb.append(" At: ").append(timeFormatter.format(Instant.ofEpochSecond(rs.getLong("time"))));
-                sb.append(" Rolled Back? ").append(rs.getLong("rolledbackat") >= 0);
-                sb.append("\n");
-                */
                 //Get the info from the database and return
                 //For all integers, create a String with the correct values
                 int time = rs.getInt("time");
@@ -123,23 +120,22 @@ public class DbConn {
                 String yString = Integer.toString(y);
                 z = rs.getInt("z");
                 String zString = Integer.toString(z);
-                String oldState = rs.getString("oldstate");
-                String newState = rs.getString("newstate");
+                String state = rs.getString("state");
                 String dimensionString = rs.getString("dimension");
-                String valuesArray[] = {xString, yString, zString, dimensionString, oldState, newState};
-                return valuesArray;
-
+                String type = rs.getString("type");
+                String player = rs.getString("player");
+                String valuesArray[] = {type, xString, yString, zString, dimensionString, state, player};
+                PrintToChat.prepareInteractionsPrint(valuesArray, scs);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        String[] returnString = {"Failed to read statement, is the database present"};
-        return returnString;
     }
 
-    public String getPlayerUuid(PlayerEntity player) {
+    public String getPlayerName(PlayerEntity player) {
         // return the player's UUID
-        return player.getUuidAsString();
+        Text playerText = player.getDisplayName();
+        return playerText.getString();
     }
 
     public void close() {

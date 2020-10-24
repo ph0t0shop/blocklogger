@@ -12,11 +12,11 @@ group = project.maven_group
 
 dependencies {
     minecraft "com.mojang:minecraft:1.16.3"
-    mappings "net.fabricmc:yarn:1.16.3+build.26:v2"
-    modImplementation "net.fabricmc:fabric-loader:0.10.0+build.208"
+    mappings "net.fabricmc:yarn:1.16.3+build.47:v2"
+    modImplementation "net.fabricmc:fabric-loader:0.10.3+build.211"
             
     //Fabric api
-    modImplementation "net.fabricmc.fabric-api:fabric-api:0.22.1+build.409-1.16"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:0.24.1+build.412-1.16"
 	//SQLite
 	include group: 'org.xerial', name: 'sqlite-jdbc', version: '3.32.3.2'
 	implementation group: 'org.xerial', name: 'sqlite-jdbc', version: '3.32.3.2'

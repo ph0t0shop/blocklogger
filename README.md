@@ -2,9 +2,8 @@
 A block change logging tool for the Fabric mod loader. Part of the FabricAdmin suite of tools
 ## Join the discord at https://discord.gg/UxHnDWr
 ## Todo
-- [ ] Return the position of a block place
 - [ ] Add container transactions (Pos, player, items removed)
-- [X] Add /bl i
+- [ ] Add block placement support when fabric API merges a pull
 
 ## Develop
 How can you help develop blocklogger?
