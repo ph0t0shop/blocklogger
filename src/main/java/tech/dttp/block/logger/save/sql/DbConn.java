@@ -7,7 +7,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.world.World;
-import tech.dttp.block.logger.LoggedEventType;
+import tech.dttp.block.logger.util.LoggedEventType;
 import tech.dttp.block.logger.util.PlayerUtils;
 import tech.dttp.block.logger.util.PrintToChat;
 
@@ -53,7 +53,7 @@ public class DbConn {
         }
     }
 
-    public void writeBreak(int x, int y, int z, BlockState state, PlayerEntity player, World world) {
+    public void writeInteractions(int x, int y, int z, BlockState state, PlayerEntity player, World world, LoggedEventType type) {
         if (con == null) {
             // Check if database isn't connected
             throw new IllegalStateException("Database connection not initialized");
@@ -63,7 +63,7 @@ public class DbConn {
             String sql = "INSERT INTO interactions(type, x, y, z, dimension, state, player, time) VALUES(?,?,?,?,?,?,?,?)";
             PreparedStatement ps = con.prepareStatement(sql);
             // set values to insert
-            ps.setString(1, LoggedEventType.broken.name());
+            ps.setString(1, type.name());
             ps.setInt(2, x);
             ps.setInt(3, y);
             ps.setInt(4, z);
@@ -72,7 +72,6 @@ public class DbConn {
             ps.setString(7, getPlayerName(player));
             ps.setLong(8, Instant.now().getEpochSecond());
             ps.execute();
-            System.out.println("[BL] Saved data");
 
         } catch (SQLException e) {
             e.printStackTrace();

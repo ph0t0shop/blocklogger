@@ -1,4 +1,4 @@
-package tech.dttp.block.logger;
+package tech.dttp.block.logger.util;
 
 public enum LoggedEventType {
     broken,
