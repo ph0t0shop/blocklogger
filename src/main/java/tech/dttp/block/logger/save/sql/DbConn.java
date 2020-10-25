@@ -4,9 +4,11 @@ import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.world.World;
+
 import tech.dttp.block.logger.util.LoggedEventType;
 import tech.dttp.block.logger.util.PlayerUtils;
 import tech.dttp.block.logger.util.PrintToChat;
@@ -14,6 +16,7 @@ import tech.dttp.block.logger.util.PrintToChat;
 import java.io.File;
 import java.sql.*;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
@@ -33,7 +36,7 @@ public class DbConn {
             con = DriverManager.getConnection("jdbc:sqlite:" + databaseFile.getPath().replace('\\', '/'));
             // Check if table exists
             ensureTable("interactions",
-                    "(type STRING, x INT NOT NULL, y INT NOT NULL, z INT NOT NULL, dimension STRING NOT NULL, state STRING, player STRING, time INT, rolledbackat INT DEFAULT -1)");
+                    "(type STRING, x INT NOT NULL, y INT NOT NULL, z INT NOT NULL, dimension STRING NOT NULL, state STRING, player STRING, time STRING, rolledbackat INT DEFAULT -1)");
             System.out.println("[BL] Connected to database");
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
@@ -58,6 +61,10 @@ public class DbConn {
             // Check if database isn't connected
             throw new IllegalStateException("Database connection not initialized");
         }
+        //Get date
+        LocalDateTime dateTime = LocalDateTime.now();
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+        String formattedDate = dateTime.format(dtf);
         try {
             // Save data
             String sql = "INSERT INTO interactions(type, x, y, z, dimension, state, player, time) VALUES(?,?,?,?,?,?,?,?)";
@@ -68,9 +75,13 @@ public class DbConn {
             ps.setInt(3, y);
             ps.setInt(4, z);
             ps.setString(5, PlayerUtils.getPlayerDimension(player));
-            ps.setString(6, state.toString());
+            //Remove { and } from the block entry
+            String stateString = state.toString();
+            stateString = stateString.replace("Block{", "");
+            stateString = stateString.replace("}", "");
+            ps.setString(6, stateString);
             ps.setString(7, getPlayerName(player));
-            ps.setLong(8, Instant.now().getEpochSecond());
+            ps.setString(8, formattedDate);
             ps.execute();
 
         } catch (SQLException e) {
@@ -85,14 +96,15 @@ public class DbConn {
         }
         PreparedStatement ps;
         ResultSet rs;
+        //Print initial read to chat - Blocklogger data for X, Y, Z
         try {
-            //Print initial read to chat - Blocklogger data for X, Y, Z
-            String message = "Blocklogger data for "+x+", "+y+", "+z+" in "+dimension;
-            try {
-                PrintToChat.print(scs.getPlayer(), message);
-            } catch (CommandSyntaxException e) {
-                e.printStackTrace();
-            }
+            Text message = new LiteralText("Blocklogger data for "+x+", "+y+", "+z+" in "+dimension);
+            PlayerEntity player = scs.getPlayer();
+            player.sendSystemMessage(message, scs.getPlayer().getUuid());
+        } catch (CommandSyntaxException e) {
+            e.printStackTrace();
+        }
+        try {
             //Read data
             String sql = "SELECT type,x,y,z,dimension,state,player,time,rolledbackat FROM interactions WHERE x=? AND y=? AND z=? AND dimension=?";
             if (eventType != null) {
@@ -111,8 +123,6 @@ public class DbConn {
             while (rs.next()) {
                 //Get the info from the database and return
                 //For all integers, create a String with the correct values
-                int time = rs.getInt("time");
-                String timeString = Integer.toString(time);
                 x = rs.getInt("x");
                 String xString = Integer.toString(x);
                 y = rs.getInt("y");
@@ -123,7 +133,8 @@ public class DbConn {
                 String dimensionString = rs.getString("dimension");
                 String type = rs.getString("type");
                 String player = rs.getString("player");
-                String valuesArray[] = {type, xString, yString, zString, dimensionString, state, player, timeString};
+                String time = rs.getString("time");
+                String valuesArray[] = {type, xString, yString, zString, dimensionString, state, player, time};
                 PrintToChat.prepareInteractionsPrint(valuesArray, scs);
             }
         } catch (SQLException e) {
@@ -132,7 +143,7 @@ public class DbConn {
     }
 
     public String getPlayerName(PlayerEntity player) {
-        // return the player's UUID
+        // return the player's name
         Text playerText = player.getDisplayName();
         return playerText.getString();
     }
