@@ -8,7 +8,6 @@
   "client": [
   ],
   "server": [
-    "MixinServerPlayerInteractionManager"
   ],
   "injectors": {
     "defaultRequire": 1

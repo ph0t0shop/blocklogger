@@ -22,8 +22,8 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 public class DbConn {
     private static Connection con = null;
     private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z")
-            .withZone(ZoneId.systemDefault()); // year-month-day hour:minute:second timezone
-
+            .withZone(ZoneId.systemDefault());
+             // year-month-day hour:minute:second timezone
     public void connect(MinecraftServer server) {
         try {
             Class.forName("org.sqlite.JDBC");
@@ -123,7 +123,7 @@ public class DbConn {
                 String dimensionString = rs.getString("dimension");
                 String type = rs.getString("type");
                 String player = rs.getString("player");
-                String valuesArray[] = {type, xString, yString, zString, dimensionString, state, player};
+                String valuesArray[] = {type, xString, yString, zString, dimensionString, state, player, timeString};
                 PrintToChat.prepareInteractionsPrint(valuesArray, scs);
             }
         } catch (SQLException e) {

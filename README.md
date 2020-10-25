@@ -17,7 +17,7 @@ Build with .\gradlew build
 ```
 
 # Use
-Blocklogger (as of v0.2) saves the log to a file named interactions.bl in the game directory. Access via the command /bl i x y z
+Blocklogger (as of v0.2) saves the log to a file named blocklogger.bl in the game directory. Access via the command /bl i x y z
 
 ## Block breaks
 ### v0.2-beta.1 and above
