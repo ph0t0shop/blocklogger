@@ -25,6 +25,19 @@ public class MixinServerPlayerInteractionManager {
 
     @Shadow public ServerWorld world;
 
+    /**
+     * Add a mixin that will be called after an item is used. It will do these steps in order
+     *    - Check if the item is a BlockItem
+     *    - If so, get the blockstate and blockitem of that block
+     *    - Then get the block that the player is looking at {@link net.minecraft.entity.Entity#raycast(double, float, boolean)}
+     *    - Check if what the player is looking at is a block
+     *    - if it is a block, then cast to a {@link BlockHitResult}
+     *    - Then write to the database the pos of the block result, the state we gathered earlier,
+     *      the player, the world the player used an item in, and the {@link LoggedEventType#placed}
+     *
+     *      The 2nd mixin just does the same for creative players as well as survival
+     */
+
     @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;useOnBlock(Lnet/minecraft/item/ItemUsageContext;)Lnet/minecraft/util/ActionResult;", ordinal = 1, shift = At.Shift.AFTER), method = "interactBlock")
     private void addBlockPlace(ServerPlayerEntity player, World world, ItemStack stack, Hand hand, BlockHitResult hitResult, CallbackInfoReturnable<ActionResult> cir){
         if (stack.getItem() instanceof BlockItem){
