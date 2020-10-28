@@ -1,6 +1,7 @@
 package tech.dttp.block.logger.util;
 
 public enum LoggedEventType {
-    broken,
-    placed
+    BROKEN,
+    PLACED,
+    PLACED_PLAYER_POS
 }
