@@ -23,7 +23,6 @@ import tech.dttp.block.logger.util.LoggedEventType;
 @Mixin(ServerPlayerInteractionManager.class)
 public class MixinServerPlayerInteractionManager {
 
-    @Shadow public ServerWorld world;
 
     /**
      * Add a mixin that will be called after an item is used. It will do these steps in order
@@ -35,7 +34,10 @@ public class MixinServerPlayerInteractionManager {
      *    - Then write to the database the pos of the block result, the state we gathered earlier,
      *      the player, the world the player used an item in, and the {@link LoggedEventType#placed}
      *
-     *      The 2nd mixin just does the same for creative players as well as survival
+     *      In the rare condition of the player looking at the top part of the falling block, the player position
+     *      is logged instead of the block pos
+     *
+     *      The 2nd mixin just ensures that the interaction is written for creative and survival players
      */
 
     @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;useOnBlock(Lnet/minecraft/item/ItemUsageContext;)Lnet/minecraft/util/ActionResult;", ordinal = 1, shift = At.Shift.AFTER), method = "interactBlock")
@@ -46,19 +48,23 @@ public class MixinServerPlayerInteractionManager {
             HitResult result = player.raycast(5, 0.0F, true);
             if (result.getType().equals(HitResult.Type.BLOCK)) {
                 BlockHitResult blockResult = (BlockHitResult)result;
-                BlockLogger.db.writeInteractions(blockResult.getBlockPos().getX(), blockResult.getBlockPos().getY(), blockResult.getBlockPos().getZ(), blockState, player, world, LoggedEventType.placed);
+                BlockLogger.db.writeInteractions(blockResult.getBlockPos().getX(), blockResult.getBlockPos().getY(), blockResult.getBlockPos().getZ(), blockState, player, world, LoggedEventType.PLACED);
+            } else if (result.getType().equals(HitResult.Type.MISS)){
+                BlockLogger.db.writeInteractions((int)Math.round(player.getX()), (int)Math.round(player.getY()), (int) Math.round(player.getZ()), blockState, player, world, LoggedEventType.PLACED_PLAYER_POS);
             }
         }
     }
     @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;useOnBlock(Lnet/minecraft/item/ItemUsageContext;)Lnet/minecraft/util/ActionResult;", ordinal = 0, shift = At.Shift.AFTER), method = "interactBlock")
     private void addBlockPlace2(ServerPlayerEntity player, World world, ItemStack stack, Hand hand, BlockHitResult hitResult, CallbackInfoReturnable<ActionResult> cir) {
-        if (stack.getItem() instanceof BlockItem) {
-            BlockItem item = (BlockItem) stack.getItem();
+        if (stack.getItem() instanceof BlockItem){
+            BlockItem item = (BlockItem)stack.getItem();
             BlockState blockState = item.getBlock().getDefaultState();
             HitResult result = player.raycast(5, 0.0F, true);
             if (result.getType().equals(HitResult.Type.BLOCK)) {
-                BlockHitResult blockResult = (BlockHitResult) result;
-                BlockLogger.db.writeInteractions(blockResult.getBlockPos().getX(), blockResult.getBlockPos().getY(), blockResult.getBlockPos().getZ(), blockState, player, world, LoggedEventType.placed);
+                BlockHitResult blockResult = (BlockHitResult)result;
+                BlockLogger.db.writeInteractions(blockResult.getBlockPos().getX(), blockResult.getBlockPos().getY(), blockResult.getBlockPos().getZ(), blockState, player, world, LoggedEventType.PLACED);
+            } else if (result.getType().equals(HitResult.Type.MISS)){
+                BlockLogger.db.writeInteractions((int)Math.round(player.getX()), (int)Math.round(player.getY()), (int) Math.round(player.getZ()), blockState, player, world, LoggedEventType.PLACED_PLAYER_POS);
             }
         }
     }
