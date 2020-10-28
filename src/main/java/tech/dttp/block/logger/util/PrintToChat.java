@@ -15,7 +15,7 @@ public class PrintToChat {
 
     public static void prepareInteractionsPrint(String[] valuesArray, ServerCommandSource scs) {
         //Actual message
-        String message = valuesArray[5]+" was "+valuesArray[0]+" by "+valuesArray[6];
+        String message = valuesArray[5]+" was "+valuesArray[0]+" by "+valuesArray[6]+" at "+valuesArray[7];
         try {
             //Print message
             PrintToChat.print(scs.getPlayer(), message);
