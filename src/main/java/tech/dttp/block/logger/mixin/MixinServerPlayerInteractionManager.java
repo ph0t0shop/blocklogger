@@ -32,10 +32,10 @@ public class MixinServerPlayerInteractionManager {
      *    - Check if what the player is looking at is a block
      *    - if it is a block, then cast to a {@link BlockHitResult}
      *    - Then write to the database the pos of the block result, the state we gathered earlier,
-     *      the player, the world the player used an item in, and the {@link LoggedEventType#placed}
+     *      the player, the world the player used an item in, and the {@link LoggedEventType#PLACED}
      *
      *      In the rare condition of the player looking at the top part of the falling block, the player position
-     *      is logged instead of the block pos
+     *      is logged instead of the block pos with {@link LoggedEventType#PLACED_PLAYER_POS}
      *
      *      The 2nd mixin just ensures that the interaction is written for creative and survival players
      */
