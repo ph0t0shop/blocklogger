@@ -10,15 +10,17 @@ import tech.dttp.block.logger.command.Commands;
 import tech.dttp.block.logger.util.LoggedEventType;
 
 public class BlockLogger implements ModInitializer {
+    public static DbConn db;
     @Override
     public void onInitialize() {
-        DbConn db = new DbConn();
+
         // Register commands
         CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {
             Commands commands = new Commands();
             commands.register(dispatcher);
         });
         ServerLifecycleEvents.SERVER_STARTED.register((server) -> {
+            db = new DbConn();
             db.connect(server);
         });
         // Block break
