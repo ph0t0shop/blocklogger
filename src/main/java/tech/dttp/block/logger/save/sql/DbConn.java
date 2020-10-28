@@ -102,7 +102,7 @@ public class DbConn {
         }
         try {
             //Read data
-            String sql = "SELECT type,x,y,z,dimension,state,player,date,time,rolledbackat FROM interactions WHERE x=? AND y=? AND z=? AND dimension=?";
+            String sql = "SELECT type,x,y,z,dimension,state,player,date,time,rolledbackat FROM interactions WHERE x=? AND y=? AND z=? AND dimension=? ORDER BY time DESC LIMIT 10";
             if (eventType != null) {
                 sql += " AND type=?";
             }
@@ -139,7 +139,7 @@ public class DbConn {
         }
     }
 
-    public String getPlayerName(PlayerEntity player) {
+    public static String getPlayerName(PlayerEntity player) {
         // return the player's name
         Text playerText = player.getDisplayName();
         return playerText.getString();
@@ -159,8 +159,9 @@ public class DbConn {
             // Check if database isn't connected
             throw new IllegalStateException("Database connection not initialized");
         }
+        PrintToChat.print(scs.getPlayer(), "Showing 10 most recent entries for "+state);
         try{
-            PreparedStatement ps = con.prepareStatement("SELECT type,x,y,z,date,time,player FROM interactions WHERE state=? AND dimension=?");
+            PreparedStatement ps = con.prepareStatement("SELECT type,x,y,z,date,time,player FROM interactions WHERE state=? AND dimension=? ORDER BY time DESC LIMIT 10");
             ps.setString(1, state);
             ps.setString(2, PlayerUtils.getPlayerDimension(scs.getPlayer()));
             ResultSet rs = ps.executeQuery();
@@ -172,7 +173,37 @@ public class DbConn {
                 String date = rs.getString(5);
                 String time = rs.getString(6);
                 String player = rs.getString(7);
-                String message = state+" was "+type+" at "+x+" "+y+" "+z+" by "+player+" at "+time+" on "+date;
+                String message = state+" was "+type+" at "+x+" "+y+" "+z+" in "+PlayerUtils.getPlayerDimension(scs.getPlayer())+" by "+player+" at "+time+" on "+date;
+                System.out.println(message);
+                PrintToChat.print(scs.getPlayer(),message);
+            }
+        }
+        catch(SQLException e){
+            e.printStackTrace();
+        }
+	}
+
+	public static void readFromPlayer(ServerCommandSource scs, String player, String dimension)
+            throws CommandSyntaxException {
+        if (con == null) {
+            // Check if database isn't connected
+            throw new IllegalStateException("Database connection not initialized");
+        }
+        PrintToChat.print(scs.getPlayer(), "Showing 10 most recent entries for "+player+" in "+dimension);
+        try{
+            PreparedStatement ps = con.prepareStatement("SELECT type,x,y,z,date,time,state FROM interactions WHERE player=? AND dimension=? ORDER BY time DESC LIMIT 10");
+            ps.setString(1, player);
+            ps.setString(2, dimension);
+            ResultSet rs = ps.executeQuery();
+            while(rs.next()){
+                String type = rs.getString(1);
+                int x = rs.getInt(2);
+                int y = rs.getInt(3);
+                int z = rs.getInt(4);
+                String date = rs.getString(5);
+                String time = rs.getString(6);
+                String state = rs.getString(7);
+                String message = state+" was "+type+" at "+x+" "+y+" "+z+" in "+PlayerUtils.getPlayerDimension(scs.getPlayer())+" by "+player+" at "+time+" on "+date;
                 System.out.println(message);
                 PrintToChat.print(scs.getPlayer(),message);
             }
