@@ -4,7 +4,6 @@ import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.world.World;
@@ -94,9 +93,8 @@ public class DbConn {
         ResultSet rs;
         //Print initial read to chat - Blocklogger data for X, Y, Z
         try {
-            Text message = new LiteralText("Blocklogger data for "+x+", "+y+", "+z+" in "+dimension);
-            PlayerEntity player = scs.getPlayer();
-            player.sendSystemMessage(message, scs.getPlayer().getUuid());
+            String message = "Blocklogger data for "+x+", "+y+", "+z+" in "+dimension;
+            PrintToChat.print(scs.getPlayer(), message, "§6");
         } catch (CommandSyntaxException e) {
             e.printStackTrace();
         }
@@ -159,7 +157,7 @@ public class DbConn {
             // Check if database isn't connected
             throw new IllegalStateException("Database connection not initialized");
         }
-        PrintToChat.print(scs.getPlayer(), "Showing 10 most recent entries for "+state);
+        PrintToChat.print(scs.getPlayer(), "Showing 10 most recent entries for "+state, "§6");
         try{
             PreparedStatement ps = con.prepareStatement("SELECT type,x,y,z,date,time,player FROM interactions WHERE state=? AND dimension=? ORDER BY time DESC LIMIT 10");
             ps.setString(1, state);
@@ -175,7 +173,7 @@ public class DbConn {
                 String player = rs.getString(7);
                 String message = state+" was "+type+" at "+x+" "+y+" "+z+" in "+PlayerUtils.getPlayerDimension(scs.getPlayer())+" by "+player+" at "+time+" on "+date;
                 System.out.println(message);
-                PrintToChat.print(scs.getPlayer(),message);
+                PrintToChat.print(scs.getPlayer(),message, "§6");
             }
         }
         catch(SQLException e){
@@ -189,7 +187,7 @@ public class DbConn {
             // Check if database isn't connected
             throw new IllegalStateException("Database connection not initialized");
         }
-        PrintToChat.print(scs.getPlayer(), "Showing 10 most recent entries for "+player+" in "+dimension);
+        PrintToChat.print(scs.getPlayer(), "Showing 10 most recent entries for "+player+" in "+dimension, "§6");
         try{
             PreparedStatement ps = con.prepareStatement("SELECT type,x,y,z,date,time,state FROM interactions WHERE player=? AND dimension=? ORDER BY time DESC LIMIT 10");
             ps.setString(1, player);
@@ -205,7 +203,7 @@ public class DbConn {
                 String state = rs.getString(7);
                 String message = state+" was "+type+" at "+x+" "+y+" "+z+" in "+PlayerUtils.getPlayerDimension(scs.getPlayer())+" by "+player+" at "+time+" on "+date;
                 System.out.println(message);
-                PrintToChat.print(scs.getPlayer(),message);
+                PrintToChat.print(scs.getPlayer(),message, "§6");
             }
         }
         catch(SQLException e){
