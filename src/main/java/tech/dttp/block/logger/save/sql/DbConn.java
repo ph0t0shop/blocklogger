@@ -173,7 +173,6 @@ public class DbConn {
                 String time = rs.getString(6);
                 String player = rs.getString(7);
                 String message = state+" was "+type+" at "+x+" "+y+" "+z+" in "+PlayerUtils.getPlayerDimension(scs.getPlayer())+" by "+player+" at "+time+" on "+date;
-                System.out.println(message);
                 PrintToChat.print(scs.getPlayer(),message, "§3");
             }
         }
@@ -203,7 +202,6 @@ public class DbConn {
                 String time = rs.getString(6);
                 String state = rs.getString(7);
                 String message = state+" was "+type+" at "+x+" "+y+" "+z+" in "+PlayerUtils.getPlayerDimension(scs.getPlayer())+" by "+player+" at "+time+" on "+date;
-                System.out.println(message);
                 PrintToChat.print(scs.getPlayer(),message, "§3");
             }
         }
