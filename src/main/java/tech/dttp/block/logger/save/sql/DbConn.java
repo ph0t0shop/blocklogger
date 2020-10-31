@@ -153,7 +153,7 @@ public class DbConn {
         }
     }
 
-	public static void readFromState(String state, ServerCommandSource scs) throws CommandSyntaxException {
+	public static void readFromState(String state, ServerCommandSource scs, String dimension) throws CommandSyntaxException {
         if (con == null) {
             // Check if database isn't connected
             throw new IllegalStateException("Database connection not initialized");
@@ -162,7 +162,7 @@ public class DbConn {
         try{
             PreparedStatement ps = con.prepareStatement("SELECT type,x,y,z,date,time,player FROM interactions WHERE state=? AND dimension=? ORDER BY time DESC LIMIT 10");
             ps.setString(1, state);
-            ps.setString(2, PlayerUtils.getPlayerDimension(scs.getPlayer()));
+            ps.setString(2, dimension);
             ResultSet rs = ps.executeQuery();
             while(rs.next()){
                 String type = rs.getString(1);

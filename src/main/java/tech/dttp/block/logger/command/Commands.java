@@ -31,7 +31,9 @@ public final class Commands {
                                                 .then(argument("Dimension", DimensionArgumentType.dimension())
                                                 .executes(scs -> searchPlayer(scs.getSource(), EntityArgumentType.getPlayer(scs, "Player"), DimensionArgumentType.getDimensionArgument(scs, "Dimension").toString()))))
                                         .then(argument("Block", BlockStateArgumentType.blockState())
-                                                .executes(scs -> search(scs.getSource(), BlockStateArgumentType.getBlockState(scs, "Block"))))));
+                                                .executes(scs -> search(scs.getSource(), BlockStateArgumentType.getBlockState(scs, "Block"), PlayerUtils.getPlayerDimension(scs.getSource().getPlayer()).toString()))
+                                                .then(argument("Dimension", DimensionArgumentType.dimension())
+                                                        .executes(scs -> search(scs.getSource(), BlockStateArgumentType.getBlockState(scs, "Block"), DimensionArgumentType.getDimensionArgument(scs, "Dimension").toString()))))));
         }
         private int searchPlayer(ServerCommandSource scs, ServerPlayerEntity player, String dimension) {
                 try {
@@ -55,12 +57,12 @@ public final class Commands {
                 int z = pos.getZ();
                 DbConn.readEvents(x, y, z, dimension, null, scs);
         }
-        private int search(ServerCommandSource source, BlockStateArgument blockState) throws CommandSyntaxException {
+        private int search(ServerCommandSource source, BlockStateArgument blockState, String dimension) throws CommandSyntaxException {
                 String state = blockState.getBlockState().toString();
                 String stateString = state.toString();
                 stateString = stateString.replace("Block{", "");
                 stateString = stateString.replace("}", "");
-                DbConn.readFromState(stateString, source);
+                DbConn.readFromState(stateString, source, dimension);
                 return 1;
         }
         
