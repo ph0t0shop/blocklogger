@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 
 import tech.dttp.block.logger.save.sql.DbConn;
+import tech.dttp.block.logger.util.LoggedEventType;
 import tech.dttp.block.logger.command.Commands;
 
 public class BlockLogger implements ModInitializer {
@@ -26,18 +27,14 @@ public class BlockLogger implements ModInitializer {
         PlayerBlockBreakEvents.AFTER.register((world, player, pos, state, entity) -> {
             // SQL
             // Write to database every time a block is broken
-            System.out.println(entity);
-            //db.writeInteractions(pos.getX(), pos.getY(), pos.getZ(), state, player, entity, world, LoggedEventType.broken);
+            db.writeInteractions(pos.getX(), pos.getY(), pos.getZ(), state, player, entity, world, LoggedEventType.broken);
         });
         // Close DB connection when world is closed
         ServerLifecycleEvents.SERVER_STOPPED.register((server) -> {
             db.close();
         });
-
-        // todo: Block placement pos via hitresult
         //When completed
         System.out.println("[BL] Initialisation completed");
     }
 
 }
-
