@@ -7,6 +7,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.world.World;
+import net.minecraft.entity.Entity;
 
 import tech.dttp.block.logger.util.LoggedEventType;
 import tech.dttp.block.logger.util.PlayerUtils;
@@ -50,7 +51,7 @@ public class DbConn {
         }
     }
 
-    public void writeInteractions(int x, int y, int z, BlockState state, PlayerEntity player, World world, LoggedEventType type) {
+    public void writeInteractions(int x, int y, int z, BlockState state, PlayerEntity player, Entity entity, World world, LoggedEventType type) {
         if (con == null) {
             // Check if database isn't connected
             throw new IllegalStateException("Database connection not initialized");
@@ -173,7 +174,7 @@ public class DbConn {
                 String player = rs.getString(7);
                 String message = state+" was "+type+" at "+x+" "+y+" "+z+" in "+PlayerUtils.getPlayerDimension(scs.getPlayer())+" by "+player+" at "+time+" on "+date;
                 System.out.println(message);
-                PrintToChat.print(scs.getPlayer(),message, "§6");
+                PrintToChat.print(scs.getPlayer(),message, "§3");
             }
         }
         catch(SQLException e){
@@ -203,7 +204,7 @@ public class DbConn {
                 String state = rs.getString(7);
                 String message = state+" was "+type+" at "+x+" "+y+" "+z+" in "+PlayerUtils.getPlayerDimension(scs.getPlayer())+" by "+player+" at "+time+" on "+date;
                 System.out.println(message);
-                PrintToChat.print(scs.getPlayer(),message, "§6");
+                PrintToChat.print(scs.getPlayer(),message, "§3");
             }
         }
         catch(SQLException e){

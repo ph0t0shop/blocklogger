@@ -42,7 +42,7 @@ public class MixinServerPlayerInteractionManager {
             HitResult result = player.raycast(5, 0.0F, true);
             if (result.getType().equals(HitResult.Type.BLOCK)) {
                 BlockHitResult blockResult = (BlockHitResult)result;
-                BlockLogger.db.writeInteractions(blockResult.getBlockPos().getX(), blockResult.getBlockPos().getY(), blockResult.getBlockPos().getZ(), blockState, player, world, LoggedEventType.placed);
+                BlockLogger.db.writeInteractions(blockResult.getBlockPos().getX(), blockResult.getBlockPos().getY(), blockResult.getBlockPos().getZ(), blockState, player,null, world, LoggedEventType.placed);
             }
         }
     }
@@ -54,7 +54,7 @@ public class MixinServerPlayerInteractionManager {
             HitResult result = player.raycast(5, 0.0F, true);
             if (result.getType().equals(HitResult.Type.BLOCK)) {
                 BlockHitResult blockResult = (BlockHitResult)result;
-                BlockLogger.db.writeInteractions(blockResult.getBlockPos().getX(), blockResult.getBlockPos().getY(), blockResult.getBlockPos().getZ(), blockState, player, world, LoggedEventType.placed);
+                BlockLogger.db.writeInteractions(blockResult.getBlockPos().getX(), blockResult.getBlockPos().getY(), blockResult.getBlockPos().getZ(), blockState, player,null, world, LoggedEventType.placed);
             }
         }
     }
