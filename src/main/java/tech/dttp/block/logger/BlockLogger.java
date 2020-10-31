@@ -27,7 +27,7 @@ public class BlockLogger implements ModInitializer {
         PlayerBlockBreakEvents.AFTER.register((world, player, pos, state, entity) -> {
             // SQL
             // Write to database every time a block is broken
-            db.writeInteractions(pos.getX(), pos.getY(), pos.getZ(), state, player, entity, world, LoggedEventType.broken);
+            db.writeInteractions(pos.getX(), pos.getY(), pos.getZ(), state, player, world, LoggedEventType.broken);
         });
         // Close DB connection when world is closed
         ServerLifecycleEvents.SERVER_STOPPED.register((server) -> {
