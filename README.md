@@ -20,9 +20,10 @@ Build with .\gradlew build
 Blocklogger (as of v0.2) saves the log to a file named blocklogger.bl in the game directory. Access via the command /bl i x y z
 
 ## Block breaks
-### v0.2-beta.1 and above
+### v0.2 and above
 Information is saved to interactions.bl.
-Block interaction data is accessible via command /bl i x y z
+Block interaction data for a block is accessible via command /bl i x y z
+You can filter for players and block types by using /bl s
 
 # Compile
 Open in your IDE, and open a terminal. Run the following commands:
