@@ -6,7 +6,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.WorldSavePath;
-import net.minecraft.world.World;
 
 import tech.dttp.block.logger.util.LoggedEventType;
 import tech.dttp.block.logger.util.PlayerUtils;
@@ -50,7 +49,7 @@ public class DbConn {
         }
     }
 
-    public void writeInteractions(int x, int y, int z, BlockState state, PlayerEntity player, World world, LoggedEventType type) {
+    public static void writeInteractions(int x, int y, int z, BlockState state, PlayerEntity player, LoggedEventType type) {
         if (con == null) {
             // Check if database isn't connected
             throw new IllegalStateException("Database connection not initialized");

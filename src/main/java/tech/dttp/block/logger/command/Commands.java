@@ -22,7 +22,7 @@ public final class Commands {
 
         public void register(CommandDispatcher<ServerCommandSource> dispatcher) {
                 dispatcher.register(literal("bl").requires(scs -> scs.hasPermissionLevel(3))
-                                .then(literal("interactions").then(argument("pos", BlockPosArgumentType.blockPos())
+                                .then(literal("i").then(argument("pos", BlockPosArgumentType.blockPos())
                                         .executes(scs -> getEventsAt(scs.getSource(),BlockPosArgumentType.getBlockPos(scs,"pos"), PlayerUtils.getPlayerDimension(scs.getSource().getPlayer())))
                                         .then(argument("dimension", DimensionArgumentType.dimension())
                                                 .executes(scs -> getEventsAt(scs.getSource(),BlockPosArgumentType.getBlockPos(scs,"pos"),DimensionArgumentType.getDimensionArgument(scs,"dimension").toString())))))
@@ -42,15 +42,30 @@ public final class Commands {
         }
         
         private int searchArea(ServerCommandSource scs, BlockPos pos1, BlockPos pos2) {
-                /*
-                Commented off until implemented in future update
                 int x1=pos1.getX();
-                int y1=pos1.getX();
-                int z1=pos1.getX();
+                int y1=pos1.getY();
+                int z1=pos1.getZ();
                 int x2=pos2.getX();
-                int y2=pos2.getX();
-                int z2=pos2.getX();
-                */
+                int y2=pos2.getY();
+                int z2=pos2.getZ();
+                int xDifference = x2-x1;
+                if (xDifference>0){
+                        for(int l=xDifference;l>x2;l++){
+                        //Perform checks for y and z
+                        System.out.println("Positive X");
+                        }
+                }
+                else if(xDifference<0){
+                        for(int l=x2-x1;l>x2;l++){
+                        //Perform checks for y and z
+                        System.out.println("Negative X");
+                        }
+                }
+                else{
+                        //Perform checks for y and z
+                        System.out.println("X=0");
+        
+                }
                 //Prints stating that this feature isn't ready
                 try {
                         //Print message

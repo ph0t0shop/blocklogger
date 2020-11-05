@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "blocklogger",
-  "version": "0.2.3",
+  "version": "0.2.4",
 
   "name": "Blocklogger",
   "description": "A block logging tool for fabric",
