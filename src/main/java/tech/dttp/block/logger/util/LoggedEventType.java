@@ -7,5 +7,7 @@ public enum LoggedEventType {
     to fix another bug as I was too lazy to make a workaround. I plan on changing this eventually.
     */
     broken,
-    placed
+    placed,
+    added,
+    removed
 }

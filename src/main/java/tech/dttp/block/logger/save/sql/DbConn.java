@@ -99,7 +99,7 @@ public class DbConn {
         }
         try {
             //Read data
-            String sql = "SELECT type,x,y,z,dimension,state,player,date,time,rolledbackat FROM interactions WHERE x=? AND y=? AND z=? AND dimension=? ORDER BY time DESC LIMIT 10";
+            String sql = "SELECT type,x,y,z,dimension,state,player,date,time,rolledbackat FROM interactions WHERE x=? AND y=? AND z=? AND dimension=? LIMIT 10";
             if (eventType != null) {
                 sql += " AND type=?";
             }
@@ -158,7 +158,7 @@ public class DbConn {
         }
         PrintToChat.print(scs.getPlayer(), "Showing 10 most recent entries for "+state, "§6");
         try{
-            PreparedStatement ps = con.prepareStatement("SELECT type,x,y,z,date,time,player FROM interactions WHERE state=? AND dimension=? ORDER BY time DESC LIMIT 10");
+            PreparedStatement ps = con.prepareStatement("SELECT type,x,y,z,date,time,player FROM interactions WHERE state=? AND dimension=? LIMIT 10");
             ps.setString(1, state);
             ps.setString(2, dimension);
             ResultSet rs = ps.executeQuery();
@@ -187,7 +187,7 @@ public class DbConn {
         }
         PrintToChat.print(scs.getPlayer(), "Showing 10 most recent entries for "+player+" in "+dimension, "§6");
         try{
-            PreparedStatement ps = con.prepareStatement("SELECT type,x,y,z,date,time,state FROM interactions WHERE player=? AND dimension=? ORDER BY time DESC LIMIT 10");
+            PreparedStatement ps = con.prepareStatement("SELECT type,x,y,z,date,time,state FROM interactions WHERE player=? AND dimension=? LIMIT 10");
             ps.setString(1, player);
             ps.setString(2, dimension);
             ResultSet rs = ps.executeQuery();
