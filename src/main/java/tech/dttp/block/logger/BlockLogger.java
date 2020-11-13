@@ -22,7 +22,7 @@ public class BlockLogger implements ModInitializer {
             db = new DbConn();
             db.connect(server);
         });
-        // Close DB connection when world is closed
+        // Close DB connection when server is closed
         ServerLifecycleEvents.SERVER_STOPPED.register((server) -> {
             db.close();
         });

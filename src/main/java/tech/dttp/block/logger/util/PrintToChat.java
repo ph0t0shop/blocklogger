@@ -16,8 +16,16 @@ public class PrintToChat {
     }
 
     public static void prepareInteractionsPrint(String[] valuesArray, ServerCommandSource scs) {
-        //Actual message
-        String message = valuesArray[5]+" was "+valuesArray[0]+" by "+valuesArray[6]+" at "+valuesArray[7]+" "+valuesArray[8];
+        //Prepare the block's state to make the messages shorter and more readable
+        String trimmed = "hallo";
+        String state = valuesArray[5];
+        int index = state.indexOf("[");
+        if(index > 0){
+            trimmed =  state.substring(0, index);
+        }
+        System.out.println(index);
+        System.out.println(trimmed);
+        String message = trimmed+" was "+valuesArray[0]+" by "+valuesArray[6]+" at "+valuesArray[7]+" "+valuesArray[8];
         try {
             //Print message
             PrintToChat.print(scs.getPlayer(), message, "§3");
