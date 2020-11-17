@@ -1,9 +1,9 @@
 # Blocklogger
 A block change logging tool for the Fabric mod loader. Part of the FabricAdmin suite of tools
-## Join the discord at https://discord.gg/UxHnDWr
+#### Join the discord at https://discord.gg/UxHnDWr
 ## Todo
 - [ ] Add container transactions (Pos, player, items removed)
-- [ ] Add block placement support when fabric API merges a pull
+- [ ] Implement /bl scan
 
 ## Develop
 How can you help develop blocklogger?
@@ -17,9 +17,9 @@ Build with .\gradlew build
 ```
 
 # Use
-Blocklogger (as of v0.2) saves the log to a file named blocklogger.bl in the game directory. Access via the command /bl i x y z
+Blocklogger (as of v0.2) saves the log to a file named blocklogger.bl in the game directory. Access via the command /bl in game
 
-## Block breaks
+## All interactions
 ### v0.2 and above
 Information is saved to interactions.bl.
 Block interaction data for a block is accessible via command /bl i x y z
@@ -33,5 +33,6 @@ Open in your IDE, and open a terminal. Run the following commands:
 ./gradlew build
 ```
 The .jar files are located in build/libs
+
 # License
 Blocklogger is licensed under the GNU GPL v3.0, found in license.txt
