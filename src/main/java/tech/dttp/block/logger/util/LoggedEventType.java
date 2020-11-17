@@ -9,5 +9,7 @@ public enum LoggedEventType {
     broken,
     placed,
     added,
-    removed
+    removed,
+    spawned,
+    killed
 }

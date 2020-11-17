@@ -79,13 +79,13 @@ public final class Commands {
         private int searchPlayer(ServerCommandSource scs, ServerPlayerEntity player, String dimension) {
                 try {
                         DbConn.readFromPlayer(scs, DbConn.getPlayerName(player), dimension);
+                        System.out.println(DbConn.getPlayerName(player));
                 } catch (CommandSyntaxException e) {
                         e.printStackTrace();
                 }
                 return 1;
         }
-        private int getEventsAt(ServerCommandSource scs, BlockPos pos, String dimension)
-                        throws CommandSyntaxException {
+        private int getEventsAt(ServerCommandSource scs, BlockPos pos, String dimension) throws CommandSyntaxException {
                 if (dimension == null) {
                         dimension = PlayerUtils.getPlayerDimension(scs.getPlayer());
                 }         
