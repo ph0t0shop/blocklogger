@@ -64,7 +64,7 @@ public final class Commands {
                 else{
                         //Perform checks for y and z
                         System.out.println("X=0");
-        
+
                 }
                 //Prints stating that this feature isn't ready
                 try {

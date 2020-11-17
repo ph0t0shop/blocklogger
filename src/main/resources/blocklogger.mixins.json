@@ -9,7 +9,9 @@
   ],
   "server": [
     "BlockBreakMixin",
-    "BlockPlaceMixin"
+    "BlockPlaceMixin",
+    "ScreenHandlerMixin",
+    "ServerPlayerEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1
