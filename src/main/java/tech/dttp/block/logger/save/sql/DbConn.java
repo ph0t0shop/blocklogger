@@ -7,6 +7,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.WorldSavePath;
 
+import net.minecraft.util.math.BlockPos;
 import tech.dttp.block.logger.util.LoggedEventType;
 import tech.dttp.block.logger.util.PlayerUtils;
 import tech.dttp.block.logger.util.PrintToChat;
@@ -83,7 +84,19 @@ public class DbConn {
         }
     }
 
-    public static void readEvents(int x, int y, int z, String dimension, LoggedEventType eventType, ServerCommandSource scs) {
+    public static void readEvents(BlockPos pos1, BlockPos pos2, String dimension, LoggedEventType eventType, ServerCommandSource scs) {
+        int x1 = pos1.getX();
+        int y1 = pos1.getY();
+        int z1 = pos1.getZ();
+        int x2 = pos2.getX();
+        int y2 = pos2.getY();
+        int z2 = pos2.getZ();
+        int xMin = Math.min(x1, x2);
+        int xMax = Math.max(x1, x2);
+        int yMin = Math.min(y1, y2);
+        int yMax = Math.max(y1, y2);
+        int zMin = Math.min(z1, z2);
+        int zMax = Math.max(z1, z2);
         // Check if database is connected
         if (con == null) {
             throw new IllegalStateException("Database connection not initialized");
@@ -92,36 +105,36 @@ public class DbConn {
         ResultSet rs;
         //Print initial read to chat - Blocklogger data for X, Y, Z
         try {
-            String message = "Blocklogger data for "+x+", "+y+", "+z+" in "+dimension;
+            String message = "Blocklogger data for (" + pos1.toString() + ")-(" + pos2.toString() + ") in "+dimension;
             PrintToChat.print(scs.getPlayer(), message, "§6");
         } catch (CommandSyntaxException e) {
             e.printStackTrace();
         }
         try {
             //Read data
-            String sql = "SELECT type,x,y,z,dimension,state,player,date,time,rolledbackat FROM interactions WHERE x=? AND y=? AND z=? AND dimension=? LIMIT 10";
+            String sql = "SELECT type,x,y,z,dimension,state,player,date,time,rolledbackat FROM interactions WHERE x>=? AND x<=? AND y>=? AND y<=? AND z>=? AND z<=? AND dimension=? LIMIT 10";
             if (eventType != null) {
                 sql += " AND type=?";
             }
             ps = con.prepareStatement(sql);
-            ps.setInt(1, x);
-            ps.setInt(2, y);
-            ps.setInt(3, z);
-            ps.setString(4, dimension);
+            ps.setInt(1, xMin);
+            ps.setInt(2, xMax);
+            ps.setInt(3, yMin);
+            ps.setInt(4, yMax);
+            ps.setInt(5, zMin);
+            ps.setInt(6, zMax);
+            ps.setString(7, dimension);
             if (eventType != null) {
-                ps.setString(5, eventType.name());
+                ps.setString(8, eventType.name());
             }
             rs = ps.executeQuery();
             // Repeat for every entry
             while (rs.next()) {
                 //Get the info from the database and return
                 //For all integers, create a String with the correct values
-                x = rs.getInt("x");
-                String xString = Integer.toString(x);
-                y = rs.getInt("y");
-                String yString = Integer.toString(y);
-                z = rs.getInt("z");
-                String zString = Integer.toString(z);
+                String xString = Integer.toString(rs.getInt("x"));
+                String yString = Integer.toString(rs.getInt("y"));
+                String zString = Integer.toString(rs.getInt("z"));
                 String state = rs.getString("state");
                 String dimensionString = rs.getString("dimension");
                 String type = rs.getString("type");

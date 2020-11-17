@@ -37,43 +37,18 @@ public final class Commands {
                                                         .executes(scs -> search(scs.getSource(), BlockStateArgumentType.getBlockState(scs, "Block"), DimensionArgumentType.getDimensionArgument(scs, "Dimension").toString())))))
                                 .then(literal("scan")
                                         .then(argument("from", BlockPosArgumentType.blockPos()).then(argument("to", BlockPosArgumentType.blockPos()).executes(scs ->
-                                                searchArea(scs.getSource(), BlockPosArgumentType.getBlockPos(scs, "from"), BlockPosArgumentType.getBlockPos(scs, "to"))
-                                                )))));
+                                                searchArea(scs.getSource(), BlockPosArgumentType.getBlockPos(scs, "from"), BlockPosArgumentType.getBlockPos(scs, "to"), PlayerUtils.getPlayerDimension(scs.getSource().getPlayer()))
+                                                ).then(argument("dimension", DimensionArgumentType.dimension())
+                                                .executes(scs -> searchArea(scs.getSource(), BlockPosArgumentType.getBlockPos(scs, "from"), BlockPosArgumentType.getBlockPos(scs, "to"), DimensionArgumentType.getDimensionArgument(scs,"dimension").toString())))))));
         }
         
-        private int searchArea(ServerCommandSource scs, BlockPos pos1, BlockPos pos2) {
-                int x1=pos1.getX();
-                int y1=pos1.getY();
-                int z1=pos1.getZ();
-                int x2=pos2.getX();
-                int y2=pos2.getY();
-                int z2=pos2.getZ();
-                int xDifference = x2-x1;
-                if (xDifference>0){
-                        for(int l=xDifference;l>x2;l++){
-                        //Perform checks for y and z
-                        System.out.println("Positive X");
-                        }
+        private int searchArea(ServerCommandSource scs, BlockPos pos1, BlockPos pos2, String dimension)
+                throws CommandSyntaxException {
+                if (dimension == null) {
+                        dimension = PlayerUtils.getPlayerDimension(scs.getPlayer());
                 }
-                else if(xDifference<0){
-                        for(int l=x2-x1;l>x2;l++){
-                        //Perform checks for y and z
-                        System.out.println("Negative X");
-                        }
-                }
-                else{
-                        //Perform checks for y and z
-                        System.out.println("X=0");
-
-                }
-                //Prints stating that this feature isn't ready
-                try {
-                        //Print message
-                        PrintToChat.print(scs.getPlayer(), "This feature has not been implemented yet, please ask your server admin to check for blocklogger v0.2.4", "§4");
-                    } catch (CommandSyntaxException e) {
-                        e.printStackTrace();
-                    }
-                return 0;
+                printArea(scs, pos1, pos2, dimension);
+                return 1;
         }
 
         private int searchPlayer(ServerCommandSource scs, ServerPlayerEntity player, String dimension) {
@@ -93,10 +68,10 @@ public final class Commands {
                 return 1;
         }
         public void print(ServerCommandSource scs, BlockPos pos, String dimension) throws CommandSyntaxException{
-                int x = pos.getX();
-                int y = pos.getY();
-                int z = pos.getZ();
-                DbConn.readEvents(x, y, z, dimension, null, scs);
+                printArea(scs, pos, pos, dimension);
+        }
+        public void printArea(ServerCommandSource scs, BlockPos pos1, BlockPos pos2, String dimension) {
+                DbConn.readEvents(pos1, pos2, dimension, null, scs);
         }
         private int search(ServerCommandSource source, BlockStateArgument blockState, String dimension) throws CommandSyntaxException {
                 String state = blockState.getBlockState().toString();
