@@ -6,6 +6,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.WorldSavePath;
 
 import org.jetbrains.annotations.Nullable;
@@ -86,7 +87,7 @@ public class DbConn {
         }
     }
 
-    public static void readEvents(int x, int y, int z, String dimension, LoggedEventType eventType, ServerCommandSource scs) {
+    public static void readEvents(int x, int y, int z, String dimension, LoggedEventType eventType, ServerPlayerEntity sender) {
         // Check if database is connected
         if (con == null) {
             throw new IllegalStateException("Database connection not initialized");
@@ -94,12 +95,9 @@ public class DbConn {
         PreparedStatement ps;
         ResultSet rs;
         //Print initial read to chat - Blocklogger data for X, Y, Z
-        try {
-            String message = "Blocklogger data for "+x+", "+y+", "+z+" in "+dimension;
-            PrintToChat.print(scs.getPlayer(), message, "§6");
-        } catch (CommandSyntaxException e) {
-            e.printStackTrace();
-        }
+        String message = "Blocklogger data for "+x+", "+y+", "+z+" in "+dimension;
+        PrintToChat.print(sender, message, Formatting.GOLD);
+
         try {
             //Read data
             String sql = "SELECT type,x,y,z,dimension,state,player,date,time,rolledbackat FROM interactions WHERE x=? AND y=? AND z=? AND dimension=? LIMIT 10";
@@ -132,7 +130,7 @@ public class DbConn {
                 String time = rs.getString("time");
                 String date = rs.getString("date");
                 String valuesArray[] = {type, xString, yString, zString, dimensionString, state, player, time, date};
-                PrintToChat.prepareInteractionsPrint(valuesArray, scs);
+                PrintToChat.prepareInteractionsPrint(valuesArray, sender);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -159,7 +157,7 @@ public class DbConn {
             // Check if database isn't connected
             throw new IllegalStateException("Database connection not initialized");
         }
-        PrintToChat.print(scs.getPlayer(), "Showing 10 most recent entries for "+state, "§6");
+        PrintToChat.print(scs.getPlayer(), "Showing 10 most recent entries for "+state, Formatting.GOLD);
         try{
             PreparedStatement ps = con.prepareStatement("SELECT type,x,y,z,date,time,player FROM interactions WHERE state=? AND dimension=? LIMIT 10");
             ps.setString(1, state);
@@ -174,7 +172,7 @@ public class DbConn {
                 String time = rs.getString(6);
                 String player = rs.getString(7);
                 String message = state+" was "+type+" at "+x+" "+y+" "+z+" in "+PlayerUtils.getPlayerDimension(scs.getPlayer())+" by "+player+" at "+time+" on "+date;
-                PrintToChat.print(scs.getPlayer(),message, "§3");
+                PrintToChat.print(scs.getPlayer(),message, Formatting.GOLD);
             }
         }
         catch(SQLException e){
@@ -188,7 +186,7 @@ public class DbConn {
             // Check if database isn't connected
             throw new IllegalStateException("Database connection not initialized");
         }
-        PrintToChat.print(scs.getPlayer(), "Showing 10 most recent entries for "+player+" in "+dimension, "§6");
+        PrintToChat.print(scs.getPlayer(), "Showing 10 most recent entries for "+player+" in "+dimension, Formatting.GOLD);
         try{
             PreparedStatement ps = con.prepareStatement("SELECT type,x,y,z,date,time,state FROM interactions WHERE player=? AND dimension=? LIMIT 10");
             ps.setString(1, player);
@@ -203,7 +201,7 @@ public class DbConn {
                 String time = rs.getString(6);
                 String state = rs.getString(7);
                 String message = state+" was "+type+" at "+x+" "+y+" "+z+" in "+PlayerUtils.getPlayerDimension(scs.getPlayer())+" by "+player+" at "+time+" on "+date;
-                PrintToChat.print(scs.getPlayer(),message, "§3");
+                PrintToChat.print(scs.getPlayer(),message, Formatting.DARK_AQUA);
             }
         }
         catch(SQLException e){
@@ -213,7 +211,7 @@ public class DbConn {
 
     public static void readAdvanced(ServerCommandSource scs, @Nullable LoggedEventType type, String dimension, Collection<ServerPlayerEntity> players, BlockState state, int range) throws CommandSyntaxException {
         //If type == null, ignore it and search all EventTypes
-        //If
+        //If range == -1, ignore
 
         throw new UnsupportedOperationException();
     }
