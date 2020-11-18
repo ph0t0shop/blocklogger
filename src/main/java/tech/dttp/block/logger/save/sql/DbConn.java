@@ -4,9 +4,11 @@ import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.WorldSavePath;
 
+import org.jetbrains.annotations.Nullable;
 import tech.dttp.block.logger.util.LoggedEventType;
 import tech.dttp.block.logger.util.PlayerUtils;
 import tech.dttp.block.logger.util.PrintToChat;
@@ -15,6 +17,7 @@ import java.io.File;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collection;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
@@ -207,4 +210,11 @@ public class DbConn {
             e.printStackTrace();
         }
 	}
+
+    public static void readAdvanced(ServerCommandSource scs, @Nullable LoggedEventType type, String dimension, Collection<ServerPlayerEntity> players, BlockState state, int range) throws CommandSyntaxException {
+        //If type == null, ignore it and search all EventTypes
+        //If
+
+        throw new UnsupportedOperationException();
+    }
 }

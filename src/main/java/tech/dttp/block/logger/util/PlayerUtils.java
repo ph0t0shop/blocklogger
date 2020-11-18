@@ -6,7 +6,6 @@ import net.minecraft.world.World;
 
 public class PlayerUtils {
     public static String getPlayerDimension(PlayerEntity player) {
-        RegistryKey<World> key = player.getEntityWorld().getRegistryKey();
-        return key.getValue().getNamespace() + ":" + key.getValue().getPath();
+        return player.getEntityWorld().getRegistryKey().getValue().toString();
     }
 }
