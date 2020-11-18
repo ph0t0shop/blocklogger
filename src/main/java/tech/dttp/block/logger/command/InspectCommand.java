@@ -49,7 +49,7 @@ public class InspectCommand {
             stringDim = dim.getRegistryKey().getValue().toString();
         }
 
-        DbConn.readEvents(pos.getX(), pos.getY(), pos.getZ(), stringDim, null, context.getSource().getPlayer());
+        DbConn.readEvents(pos, stringDim, null, context.getSource().getPlayer());
         return 1;
     }
 

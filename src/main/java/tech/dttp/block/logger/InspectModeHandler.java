@@ -21,7 +21,7 @@ public class InspectModeHandler {
             if (inspectingPlayers.contains(playerEntity)) {
                 String dim = PlayerUtils.getPlayerDimension(playerEntity);
 
-                DbConn.readEvents(blockPos.getX(), blockPos.getY(), blockPos.getZ(), dim, null, (ServerPlayerEntity) playerEntity);
+                DbConn.readEvents(blockPos, dim, null, (ServerPlayerEntity) playerEntity);
                 return ActionResult.FAIL;
             }
 
