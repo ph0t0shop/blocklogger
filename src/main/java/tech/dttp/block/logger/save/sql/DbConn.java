@@ -1,12 +1,15 @@
 package tech.dttp.block.logger.save.sql;
 
 import net.minecraft.block.BlockState;
+import net.minecraft.command.argument.UuidArgumentType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.PlayerManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.UserCache;
 import net.minecraft.util.WorldSavePath;
 
 import org.jetbrains.annotations.Nullable;
@@ -20,11 +23,14 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
+import java.util.UUID;
 
+import com.mojang.authlib.yggdrasil.response.User;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 public class DbConn {
     private static Connection con = null;
+    public static MinecraftServer server = null;
     public void connect(MinecraftServer server) {
         try {
             Class.forName("org.sqlite.JDBC");
@@ -78,7 +84,7 @@ public class DbConn {
             stateString = stateString.replace("Block{", "");
             stateString = stateString.replace("}", "");
             ps.setString(6, stateString);
-            ps.setString(7, getPlayerName(player));
+            ps.setString(7, getPlayerUuid(player));
             ps.setString(8, date);
             ps.setString(9, time);
             ps.execute();
@@ -128,7 +134,8 @@ public class DbConn {
                 String player = rs.getString("player");
                 String time = rs.getString("time");
                 String date = rs.getString("date");
-                String valuesArray[] = {type, xString, yString, zString, dimensionString, state, player, time, date};
+                String valuesArray[] = {type, xString, yString, zString, dimensionString, state, getDisplayName(getUuid(player)), time,
+                        date };
                 PrintToChat.prepareInteractionsPrint(valuesArray, sourcePlayer);
             }
         } catch (SQLException e) {
@@ -136,12 +143,20 @@ public class DbConn {
         }
     }
 
-    public static String getPlayerName(PlayerEntity player) {
-        // return the player's name
-        Text playerText = player.getDisplayName();
-        return playerText.getString();
+    private static String getDisplayName(UUID uuid) {
+        MinecraftServer server = DbConn.server;
+        String name = server.getUserCache().getByUuid(uuid).getName();
+        return name;
     }
 
+    public static String getPlayerUuid(PlayerEntity player) {
+        // return the player's UUID as a String
+        return player.getUuidAsString();
+    }
+
+    public static UUID getUuid(String uuid) {
+        return UUID.fromString(uuid);
+    }
     public void close() {
         // Closes connection to database
         try {
@@ -235,7 +250,7 @@ public class DbConn {
             ps.setInt(4, pos.getZ());
             ps.setString(5, PlayerUtils.getPlayerDimension(player));
             ps.setString(6, itemName);
-            ps.setString(7, getPlayerName(player));
+            ps.setString(7, getPlayerUuid(player));
             ps.setString(8, date);
             ps.setString(9, time);
             ps.execute();
