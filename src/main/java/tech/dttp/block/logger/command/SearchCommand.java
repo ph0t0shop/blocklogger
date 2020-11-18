@@ -1,12 +1,12 @@
 package tech.dttp.block.logger.command;
 
-import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.tree.ArgumentCommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import net.minecraft.block.BlockState;
-import net.minecraft.command.argument.BlockStateArgumentType;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -15,26 +15,41 @@ import tech.dttp.block.logger.save.sql.DbConn;
 import tech.dttp.block.logger.util.LoggedEventType;
 import tech.dttp.block.logger.util.PlayerUtils;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class SearchCommand {
     public static void register(LiteralCommandNode root) {
+        CriteriumSuggestionProvider scsp = new CriteriumSuggestionProvider();
+//        LiteralCommandNode<ServerCommandSource> searchNode =
+//                literal("search")
+//                        .then(argument("action", StringArgumentType.string())
+//                                .suggests(new ActionSuggestionProvider())
+//                                .then(argument("targets", EntityArgumentType.players())
+//                                        .executes(context -> search(context, null, -1))
+//                                        .then(argument("range", IntegerArgumentType.integer(-1, 100))
+//                                                .executes(context -> search(context, null, IntegerArgumentType.getInteger(context, "range")))
+//                                                .then(argument("block", BlockStateArgumentType.blockState())
+//                                                        .executes(context -> search(context, BlockStateArgumentType.getBlockState(context, "block").getBlockState(), IntegerArgumentType.getInteger(context, "range"))))
+//                                        )
+//                                ))
+//                        .build();
+
+
+
+//        RequiredArgumentBuilder<ServerCommandSource, String> criteriumNode =
+//                argument("criterium", StringArgumentType.string()).suggests(scsp).then();
+//
+//        criteriumNode = criteriumNode.then(criteriumNode);
+
         LiteralCommandNode<ServerCommandSource> searchNode =
-                literal("search")
-                        .then(argument("action", StringArgumentType.string())
-                                .suggests(new ActionSuggestionProvider())
-                                .then(argument("targets", EntityArgumentType.players())
-                                        .executes(context -> search(context, null, -1))
-                                        .then(argument("range", IntegerArgumentType.integer(-1, 100))
-                                                .executes(context -> search(context, null, IntegerArgumentType.getInteger(context, "range")))
-                                                .then(argument("block", BlockStateArgumentType.blockState())
-                                                        .executes(context -> search(context, BlockStateArgumentType.getBlockState(context, "block").getBlockState(), IntegerArgumentType.getInteger(context, "range"))))
-                                        )
-                                ))
-                        .build();
+                literal("search").then(argument("criteria", StringArgumentType.greedyString()).suggests(scsp)).build();
+
 
         root.addChild(searchNode);
     }
