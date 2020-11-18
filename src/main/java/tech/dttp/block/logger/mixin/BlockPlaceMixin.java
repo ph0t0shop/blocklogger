@@ -19,6 +19,6 @@ public abstract class BlockPlaceMixin extends Item {
 
   @Inject(at = @At(value = "INVOKE",target = "Lnet/minecraft/item/ItemPlacementContext;getBlockPos()Lnet/minecraft/util/math/BlockPos;"),method = "place")
   public void place(ItemPlacementContext c, CallbackInfoReturnable<Boolean> info) {
-        DbConn.writeInteractions(c.getBlockPos().getX(), c.getBlockPos().getY(), c.getBlockPos().getZ(), c.getWorld().getBlockState(c.getBlockPos()), c.getPlayer(), LoggedEventType.placed);
+        DbConn.writeInteractions(c.getBlockPos(), c.getWorld().getBlockState(c.getBlockPos()), c.getPlayer(), LoggedEventType.placed);
   }
 }
