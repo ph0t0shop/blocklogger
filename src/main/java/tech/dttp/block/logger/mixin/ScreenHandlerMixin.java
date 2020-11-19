@@ -85,7 +85,7 @@ public abstract class ScreenHandlerMixin implements IScreenHandlerMixin {
         ItemStack significantStack = oldEmpty ? newStack : oldStack;
         LoggedEventType eventType = oldEmpty ? LoggedEventType.added : LoggedEventType.removed;
         BlockPos pos = loggingBE.getPos();
-        System.out.println(pos.toString() + ": " + player.getName().getString() + " " + eventType.toString() + " " + significantStack.toString());
+        // System.out.println(pos.toString() + ": " + player.getName().getString() + " " + eventType.toString() + " " + significantStack.toString());
         DbConn.writeContainerTransaction(pos, significantStack, player, eventType);
     }
 }
