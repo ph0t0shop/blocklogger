@@ -1,10 +1,8 @@
 package tech.dttp.block.logger.command;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.brigadier.tree.ArgumentCommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import net.minecraft.block.BlockState;
 import net.minecraft.command.argument.EntityArgumentType;
@@ -23,7 +21,7 @@ import static net.minecraft.server.command.CommandManager.literal;
 public class SearchCommand {
     public static void register(LiteralCommandNode root) {
         LiteralCommandNode<ServerCommandSource> searchNode =
-                literal("search").then(argument("criteria", StringArgumentType.greedyString()).suggests(new CriteriumSuggestionProvider())).build();
+                literal("search").then(argument("criteria", StringArgumentType.greedyString()).suggests(new CriteriumParser())).build();
 
         root.addChild(searchNode);
     }

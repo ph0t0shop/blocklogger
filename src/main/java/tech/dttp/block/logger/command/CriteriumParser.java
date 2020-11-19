@@ -9,7 +9,6 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.command.argument.BlockStateArgumentType;
-import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.command.argument.GameProfileArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
 
@@ -17,11 +16,11 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-public class CriteriumSuggestionProvider implements SuggestionProvider<ServerCommandSource> {
+public class CriteriumParser implements SuggestionProvider<ServerCommandSource> {
     private Set<String> criteria;
     private HashMap<String, Suggestor> criteriumSuggestors = new HashMap<>();
 
-    public CriteriumSuggestionProvider() {
+    public CriteriumParser() {
         criteriumSuggestors.put("action", new Suggestor(new ActionSuggestionProvider()));
         criteriumSuggestors.put("targets", new Suggestor(GameProfileArgumentType.gameProfile()));
         criteriumSuggestors.put("range", new Suggestor(IntegerArgumentType.integer()));
