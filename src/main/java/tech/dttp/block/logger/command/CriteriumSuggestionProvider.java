@@ -1,5 +1,6 @@
 package tech.dttp.block.logger.command;
 
+import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -11,9 +12,7 @@ import net.minecraft.command.argument.BlockStateArgumentType;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
 
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -33,27 +32,29 @@ public class CriteriumSuggestionProvider implements SuggestionProvider<ServerCom
     public CompletableFuture<Suggestions> getSuggestions(CommandContext<ServerCommandSource> context, SuggestionsBuilder builder) throws CommandSyntaxException {
         String input = builder.getInput();
         int lastSpaceIndex = input.lastIndexOf(' ');
-        int lastColonIndex = input.lastIndexOf(':');
-        if (lastColonIndex == -1) { // no colon, just suggest criteria
+        int relColonIndex = input.substring(lastSpaceIndex).indexOf(':');
+        int lastColonIndex = lastSpaceIndex + relColonIndex;
+        if (relColonIndex == -1) { // no colon, just suggest criteria
             SuggestionsBuilder offsetBuilder = builder.createOffset(lastSpaceIndex + 1);
             builder.add(suggestCriteria(offsetBuilder));
         } else { // take last colon
-            String[] colonSplit = input.split(":");
-            String[] spaceSplit = colonSplit[colonSplit.length - (lastColonIndex == input.length() - 1 ? 1 : 2)].split(" ");
+            String[] spaceSplit = input.substring(0, lastColonIndex).split(" ");
             String criterium = spaceSplit[spaceSplit.length - 1];
+            String criteriumArg = input.substring(lastColonIndex + 1);
 
             if (!criteriumSuggestors.containsKey(criterium)) {
                 return builder.buildFuture();
             } else { // check if suggestor consumes the rest
                 Suggestor suggestor = criteriumSuggestors.get(criterium);
-                SuggestionsBuilder offsetBuilder = builder.createOffset(lastColonIndex + 1);
-                return suggestor.listSuggestions(context, offsetBuilder).thenApply(suggestions -> {
-                    if (/*consumes*/false) {
-                        return suggestCriteria(offsetBuilder).build();
-                    } else { // suggest regarding current argument
-                        return suggestions;
-                    }
-                });
+
+                int remaining = suggestor.getRemaining(criteriumArg);
+                if (remaining > 0) { // suggest new criterium
+                    SuggestionsBuilder offsetBuilder = builder.createOffset(input.length() - remaining + 1);
+                    return suggestCriteria(offsetBuilder).buildFuture();
+                } else {
+                    SuggestionsBuilder offsetBuilder = builder.createOffset(lastColonIndex + 1);
+                    return suggestor.listSuggestions(context, offsetBuilder);
+                }
             }
         }
 
@@ -93,6 +94,21 @@ public class CriteriumSuggestionProvider implements SuggestionProvider<ServerCom
                 }
             } else {
                 return this.argumentType.listSuggestions(context, builder);
+            }
+        }
+
+        public int getRemaining(String s) {
+            if (this.useSuggestionProvider) {
+                int spaceIndex = s.lastIndexOf(' ');
+                if (spaceIndex == -1) return -1;
+                return s.length() - s.lastIndexOf(' ');
+            }
+            try {
+                StringReader reader = new StringReader(s);
+                this.argumentType.parse(reader);
+                return reader.getRemainingLength();
+            } catch (CommandSyntaxException e) {
+                return -1;
             }
         }
     }

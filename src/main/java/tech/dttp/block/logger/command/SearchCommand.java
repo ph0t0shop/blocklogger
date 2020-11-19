@@ -15,41 +15,15 @@ import tech.dttp.block.logger.save.sql.DbConn;
 import tech.dttp.block.logger.util.LoggedEventType;
 import tech.dttp.block.logger.util.PlayerUtils;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class SearchCommand {
     public static void register(LiteralCommandNode root) {
-        CriteriumSuggestionProvider scsp = new CriteriumSuggestionProvider();
-//        LiteralCommandNode<ServerCommandSource> searchNode =
-//                literal("search")
-//                        .then(argument("action", StringArgumentType.string())
-//                                .suggests(new ActionSuggestionProvider())
-//                                .then(argument("targets", EntityArgumentType.players())
-//                                        .executes(context -> search(context, null, -1))
-//                                        .then(argument("range", IntegerArgumentType.integer(-1, 100))
-//                                                .executes(context -> search(context, null, IntegerArgumentType.getInteger(context, "range")))
-//                                                .then(argument("block", BlockStateArgumentType.blockState())
-//                                                        .executes(context -> search(context, BlockStateArgumentType.getBlockState(context, "block").getBlockState(), IntegerArgumentType.getInteger(context, "range"))))
-//                                        )
-//                                ))
-//                        .build();
-
-
-
-//        RequiredArgumentBuilder<ServerCommandSource, String> criteriumNode =
-//                argument("criterium", StringArgumentType.string()).suggests(scsp).then();
-//
-//        criteriumNode = criteriumNode.then(criteriumNode);
-
         LiteralCommandNode<ServerCommandSource> searchNode =
-                literal("search").then(argument("criteria", StringArgumentType.greedyString()).suggests(scsp)).build();
-
+                literal("search").then(argument("criteria", StringArgumentType.greedyString()).suggests(new CriteriumSuggestionProvider())).build();
 
         root.addChild(searchNode);
     }
