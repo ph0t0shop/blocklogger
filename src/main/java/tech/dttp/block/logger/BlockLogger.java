@@ -24,22 +24,16 @@ public class BlockLogger implements ModInitializer {
         ServerLifecycleEvents.SERVER_STARTED.register((server) -> {
             db = new DbConn();
             db.connect(server);
+            DbConn.server = server;
         });
         // Close DB connection when server is closed
         ServerLifecycleEvents.SERVER_STOPPED.register((server) -> {
             db.close();
         });
-        // Checks if player is in inspect mode
-        InspectorUtils inspectorUtils = new InspectorUtils();
-        AttackBlockCallback.EVENT.register((player, world, hand, pos, direction) -> {
-            if(player.hasPermissionLevel(3)&&inspectorUtils.isInspected()){
-                DbConn.readEvents(pos,PlayerUtils.getPlayerDimension(player), null, null);
-                return ActionResult.SUCCESS;
-            }
-            else{
-            return ActionResult.PASS;
-            }
-        });
+
+        //Setup inspect mode
+        InspectModeHandler.init();
+
         // When completed
         System.out.println("[BL] Initialisation completed");
     }
