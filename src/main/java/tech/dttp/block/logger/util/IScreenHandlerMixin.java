@@ -4,5 +4,5 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 
 public interface IScreenHandlerMixin {
-    void setLoggingInfo(BlockEntity pos, PlayerEntity player);
+    void setLoggingInfo(BlockEntity pos);
 }
