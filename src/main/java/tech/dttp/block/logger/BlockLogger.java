@@ -30,6 +30,10 @@ public class BlockLogger implements ModInitializer {
         ServerLifecycleEvents.SERVER_STOPPED.register((server) -> {
             db.close();
         });
+
+        //Setup inspect mode
+        InspectModeHandler.init();
+
         // When completed
         System.out.println("[BL] Initialisation completed");
     }
