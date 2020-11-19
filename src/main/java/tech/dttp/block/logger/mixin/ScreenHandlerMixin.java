@@ -29,7 +29,7 @@ public abstract class ScreenHandlerMixin implements IScreenHandlerMixin {
 
     @Override
     public void setLoggingInfo(BlockEntity loggingBE, PlayerEntity loggingPlayer) {
-        if (this.slots.size() == 0) { // TODO: Check possible race condition where slots aren't yet initialized here
+        if (this.slots.size() == 0) { // Improvement: Check possible race condition where slots aren't yet initialized here
             System.out.println("[BL] Empty inventory opened for logging. Skipping.");
             return;
         }
@@ -62,7 +62,6 @@ public abstract class ScreenHandlerMixin implements IScreenHandlerMixin {
         ItemStack significantStack = oldEmpty ? newStack : oldStack;
         LoggedEventType eventType = oldEmpty ? LoggedEventType.added : LoggedEventType.removed;
         BlockPos pos = loggingBE.getPos();
-        System.out.println(pos + ": " + eventType.toString() + " " + significantStack.toString());
-        // DbConn.writeInteractions(pos.getX(), pos.getY(), pos.getZ(), significantStack, loggingPlayer, eventType);
+        DbConn.writeContainerTransaction(pos, significantStack, loggingPlayer, eventType);
     }
 }
