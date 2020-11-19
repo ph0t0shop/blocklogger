@@ -10,6 +10,7 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.command.argument.BlockStateArgumentType;
 import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.command.argument.GameProfileArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
 
 import java.util.HashMap;
@@ -22,7 +23,7 @@ public class CriteriumSuggestionProvider implements SuggestionProvider<ServerCom
 
     public CriteriumSuggestionProvider() {
         criteriumSuggestors.put("action", new Suggestor(new ActionSuggestionProvider()));
-        criteriumSuggestors.put("targets", new Suggestor(EntityArgumentType.players()));
+        criteriumSuggestors.put("targets", new Suggestor(GameProfileArgumentType.gameProfile()));
         criteriumSuggestors.put("range", new Suggestor(IntegerArgumentType.integer()));
         criteriumSuggestors.put("block", new Suggestor(BlockStateArgumentType.blockState()));
         this.criteria = criteriumSuggestors.keySet();
