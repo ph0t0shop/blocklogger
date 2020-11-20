@@ -221,7 +221,7 @@ public class DbConn {
 
 
     private static void onConnection () throws SQLException {
-        searchQuery = new SelectPSBuilder(con, "SELECT type,x,y,z,dimension,state,player,time,rolledbackat FROM interactions");
+        searchQuery = new SelectPSBuilder(con, "SELECT type,x,y,z,dimension,state,player,time,rolledbackat FROM interactions", "ORDER BY time DESC LIMIT 10");
         searchQuery.addPredicate(JDBCType.VARCHAR, "action", "type = ?");
         searchQuery.addPredicate(JDBCType.ARRAY, "targets", "player IN (?)");
         searchQuery.addPredicate(JDBCType.VARCHAR, "block", "state LIKE ?");
@@ -229,7 +229,7 @@ public class DbConn {
                 "((x - ?)*(x - ?) + (y - ?)*(y - ?) + (z - ?)*(z - ?)) <= ?");
         searchQuery.prepare();
 
-        readEventsQuery = new SelectPSBuilder(con, "SELECT type,x,y,z,dimension,state,player,time,rolledbackat FROM interactions");
+        readEventsQuery = new SelectPSBuilder(con, "SELECT type,x,y,z,dimension,state,player,time,rolledbackat FROM interactions", "ORDER BY time DESC LIMIT 10");
         readEventsQuery.addPredicate(JDBCType.VARCHAR, "pos","x = ? AND y = ? AND z = ?");
         readEventsQuery.addPredicate(JDBCType.VARCHAR, "dimension","dimension = ?");
         readEventsQuery.addPredicate(JDBCType.VARCHAR, "type","type = ?");

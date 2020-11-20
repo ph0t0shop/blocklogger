@@ -7,6 +7,10 @@ import java.util.HashMap;
 public class SelectPSBuilder extends PSBuilder {
     private HashMap<String, PSPredicate> predicates = new HashMap<>();
 
+    public SelectPSBuilder(Connection conn, String baseQuery, String querySuffix) {
+        super(conn, baseQuery, querySuffix);
+    }
+
     public SelectPSBuilder(Connection conn, String baseQuery) {
         super(conn, baseQuery);
     }
@@ -34,6 +38,7 @@ public class SelectPSBuilder extends PSBuilder {
             }
             query.append("((").append(predicate.predicate).append(") OR ?)");
         }
+        query.append(' ').append(querySuffix);
         return conn.prepareStatement(query.toString());
     }
 

@@ -9,6 +9,10 @@ import java.util.HashMap;
 public class InsertPSBuilder extends PSBuilder {
     private HashMap<String, String[]> fillables = new HashMap<>();
 
+    public InsertPSBuilder(Connection conn, String baseQuery, String querySuffix) {
+        super(conn, baseQuery, querySuffix);
+    }
+
     public InsertPSBuilder(Connection conn, String baseQuery) {
         super(conn, baseQuery);
     }
@@ -52,7 +56,7 @@ public class InsertPSBuilder extends PSBuilder {
             }
         }
 
-        query.append(')');
+        query.append(") ").append(querySuffix);
 
         return conn.prepareStatement(query.toString());
     }

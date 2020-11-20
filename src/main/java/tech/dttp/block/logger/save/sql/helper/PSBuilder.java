@@ -7,11 +7,17 @@ import java.util.HashMap;
 public abstract class PSBuilder {
     protected Connection conn;
     protected String baseQuery;
+    protected String querySuffix;
     protected PreparedStatement ps;
 
-    public PSBuilder(Connection conn, String baseQuery) {
+    public PSBuilder(Connection conn, String baseQuery, String querySuffix) {
         this.conn = conn;
         this.baseQuery = baseQuery;
+        this.querySuffix = querySuffix;
+    }
+
+    public PSBuilder(Connection conn, String baseQuery) {
+        this(conn, baseQuery, "");
     }
 
     public final void prepare() throws SQLException {
