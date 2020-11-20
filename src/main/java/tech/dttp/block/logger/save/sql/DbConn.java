@@ -67,7 +67,7 @@ public class DbConn {
         }
     }
 
-    public static void writeInteractions(BlockPos pos, BlockState state, PlayerEntity player, LoggedEventType type) {
+    public static void writeInteractions(BlockPos pos, BlockState state, PlayerEntity player, LoggedEventType type, boolean isPlayer) {
         if (con == null) {
             // Check if database isn't connected
             throw new IllegalStateException("Database connection not initialized");
@@ -81,7 +81,12 @@ public class DbConn {
             runner.fillParameter("pos", pos.getX(), pos.getY(), pos.getZ());
             runner.fillParameter("dimension", PlayerUtils.getPlayerDimension(player));
             runner.fillParameter("state", state.toString().replace("Block{", "").replace("}", ""));
-            runner.fillParameter("player", getPlayerUuid(player));
+            if(isPlayer){
+                runner.fillParameter("player", getPlayerUuid(player));
+            }
+            else{
+                runner.fillParameter("player", null);
+            }
             runner.fillParameter("time", time);
 
             runner.execute();

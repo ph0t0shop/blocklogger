@@ -18,6 +18,6 @@ import tech.dttp.block.logger.util.LoggedEventType;
 public abstract class BlockBreakMixin implements ItemConvertible {
   @Inject(at = @At("HEAD"), method = "onBreak")
   public void onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player, CallbackInfo info) {
-    DbConn.writeInteractions(pos, state, player, LoggedEventType.broken);
+    DbConn.writeInteractions(pos, state, player, LoggedEventType.broken, true);
   }
 }
