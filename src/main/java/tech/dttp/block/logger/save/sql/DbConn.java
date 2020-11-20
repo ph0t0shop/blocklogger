@@ -35,7 +35,6 @@ public class DbConn {
     private static SelectPSBuilder searchQuery;
     private static InsertPSBuilder writeInteractionsQuery;
     private static SelectPSBuilder readEventsQuery;
-    private static InsertPSBuilder writeContainerTransactionQuery;
 
     public static void connect(MinecraftServer server) {
         try {
