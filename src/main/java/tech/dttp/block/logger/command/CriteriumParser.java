@@ -1,16 +1,20 @@
 package tech.dttp.block.logger.command;
 
+import com.mojang.brigadier.LiteralMessage;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandExceptionType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.command.argument.BlockStateArgumentType;
 import net.minecraft.command.argument.GameProfileArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.text.TranslatableText;
 
 import java.util.HashMap;
 import java.util.Set;
@@ -20,7 +24,13 @@ public class CriteriumParser implements SuggestionProvider<ServerCommandSource> 
     private Set<String> criteria;
     private HashMap<String, Suggestor> criteriumSuggestors = new HashMap<>();
 
-    public CriteriumParser() {
+    private static CriteriumParser instance = new CriteriumParser();
+
+    public static CriteriumParser getInstance() {
+        return instance;
+    }
+
+    private CriteriumParser() {
         criteriumSuggestors.put("action", new Suggestor(new ActionSuggestionProvider()));
         criteriumSuggestors.put("targets", new Suggestor(GameProfileArgumentType.gameProfile()));
         criteriumSuggestors.put("range", new Suggestor(IntegerArgumentType.integer()));
@@ -32,9 +42,17 @@ public class CriteriumParser implements SuggestionProvider<ServerCommandSource> 
     public CompletableFuture<Suggestions> getSuggestions(CommandContext<ServerCommandSource> context, SuggestionsBuilder builder) throws CommandSyntaxException {
         String input = builder.getInput();
         int lastSpaceIndex = input.lastIndexOf(' ');
-        int relColonIndex = input.substring(lastSpaceIndex).indexOf(':');
-        int lastColonIndex = lastSpaceIndex + relColonIndex;
-        if (relColonIndex == -1) { // no colon, just suggest criteria
+        char[] inputArr = input.toCharArray();
+        int lastColonIndex = -1;
+        for (int i = inputArr.length - 1; i >= 0; i--) {
+            char c = inputArr[i];
+            if (c == ':') { // encountered a colon
+                lastColonIndex = i;
+            } else if (lastColonIndex != -1 && c == ' ') { // we have encountered a space after our colon
+                break;
+            }
+        }
+        if (lastColonIndex == -1) { // no colon, just suggest criteria
             SuggestionsBuilder offsetBuilder = builder.createOffset(lastSpaceIndex + 1);
             builder.add(suggestCriteria(offsetBuilder));
         } else { // take last colon
@@ -69,6 +87,20 @@ public class CriteriumParser implements SuggestionProvider<ServerCommandSource> 
             }
         }
         return builder;
+    }
+
+    public HashMap<String, Object> rawProperties (String s) throws CommandSyntaxException {
+        StringReader reader = new StringReader(s);
+        HashMap<String, Object> result = new HashMap<>();
+        while (reader.canRead()) {
+                String propertyName = reader.readStringUntil(':').trim();
+                Suggestor suggestor = this.criteriumSuggestors.get(propertyName);
+                if (suggestor == null) {
+                    throw new SimpleCommandExceptionType(new LiteralMessage("Unknown property value: " + propertyName)).create();
+                }
+                result.put(propertyName, suggestor.parse(reader));
+        }
+        return result;
     }
 
     private static class Suggestor {
@@ -109,6 +141,19 @@ public class CriteriumParser implements SuggestionProvider<ServerCommandSource> 
                 return reader.getRemainingLength();
             } catch (CommandSyntaxException e) {
                 return -1;
+            }
+        }
+
+        public Object parse(StringReader reader) throws CommandSyntaxException {
+            if (this.useSuggestionProvider) {
+                int startPos = reader.getCursor();
+                try {
+                    return reader.readStringUntil(' ');
+                } catch (CommandSyntaxException e) {
+                    return reader.getString().substring(startPos);
+                }
+            } else {
+                return this.argumentType.parse(reader);
             }
         }
     }

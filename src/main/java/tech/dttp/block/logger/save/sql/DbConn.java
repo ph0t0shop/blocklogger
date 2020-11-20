@@ -1,6 +1,8 @@
 package tech.dttp.block.logger.save.sql;
 
 import net.minecraft.block.BlockState;
+import net.minecraft.command.argument.BlockStateArgument;
+import net.minecraft.command.argument.GameProfileArgumentType;
 import net.minecraft.command.argument.UuidArgumentType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -12,6 +14,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.WorldSavePath;
 
+import net.minecraft.util.registry.Registry;
 import org.jetbrains.annotations.Nullable;
 import net.minecraft.util.math.BlockPos;
 import tech.dttp.block.logger.util.LoggedEventType;
@@ -23,6 +26,7 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.UUID;
 
 import com.mojang.authlib.yggdrasil.response.User;
@@ -31,7 +35,10 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 public class DbConn {
     private static Connection con = null;
     public static MinecraftServer server = null;
-    public void connect(MinecraftServer server) {
+
+    private static PSBuilder searchQuery;
+
+    public static void connect(MinecraftServer server) {
         try {
             Class.forName("org.sqlite.JDBC");
             File databaseFile;
@@ -42,12 +49,14 @@ public class DbConn {
             ensureTable("interactions",
                     "(type STRING, x INT NOT NULL, y INT NOT NULL, z INT NOT NULL, dimension STRING NOT NULL, state STRING, player STRING, date STRING,time STRING, rolledbackat INT DEFAULT -1)");
             System.out.println("[BL] Connected to database");
+            onConnection();
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
         }
     }
 
-    private void ensureTable(String name, String description) {
+
+    private static void ensureTable(String name, String description) {
         // Create table if it doesn't exist
         String sql = "CREATE TABLE IF NOT EXISTS " + name + " " + description + ";";
         try {
@@ -156,7 +165,7 @@ public class DbConn {
     public static UUID getUuid(String uuid) {
         return UUID.fromString(uuid);
     }
-    public void close() {
+    public static void close() {
         // Closes connection to database
         try {
             con.close();
@@ -222,12 +231,63 @@ public class DbConn {
         }
 	}
 
-    public static void readAdvanced(ServerCommandSource scs, @Nullable LoggedEventType type, String dimension, Collection<ServerPlayerEntity> players, BlockState state, int range) throws CommandSyntaxException {
-        //If type == null, ignore it and search all EventTypes
-        //If
+    public static void readAdvanced(ServerCommandSource scs, HashMap<String, Object> propertyMap) throws CommandSyntaxException {
+        ServerPlayerEntity sourcePlayer = scs.getPlayer();
+        // Check if database is connected
+        if (con == null) {
+            throw new IllegalStateException("Database connection not initialized");
+        }
 
-        throw new UnsupportedOperationException();
+        PSBuilder.Runner queryRunner = searchQuery.createRunner();
+        if (propertyMap.containsKey("action")) {
+            queryRunner.fillParameter("action", (String) propertyMap.get("action"));
+        }
+        if (propertyMap.containsKey("targets")) {
+            GameProfileArgumentType.GameProfileArgument targets = (GameProfileArgumentType.GameProfileArgument)propertyMap.get("targets");
+            queryRunner.fillParameter("targets", targets.getNames(scs).stream().findFirst().get().getId().toString());
+        }
+        if (propertyMap.containsKey("block")) {
+            BlockStateArgument block = (BlockStateArgument)propertyMap.get("block");
+            queryRunner.fillParameter("block", Registry.BLOCK.getId(block.getBlockState().getBlock()).toString() + "%");
+        }
+        if (propertyMap.containsKey("range")) {
+            int range = (Integer)propertyMap.get("range");
+            range *= range;
+            BlockPos playerPos = sourcePlayer.getBlockPos();
+            int x = playerPos.getX();
+            int y = playerPos.getY();
+            int z = playerPos.getZ();
+            queryRunner.fillParameter("range", x, x, y, y, z, z, range);
+        }
+        String message = "Blocklogger data for query";
+        PrintToChat.print(sourcePlayer, message, Formatting.GOLD);
+        try {
+            //Read data
+            ResultSet rs = queryRunner.execute();
+            // Repeat for every entry
+            while (rs.next()) {
+                //Get the info from the database and return
+                //For all integers, create a String with the correct values
+                int x = rs.getInt("x");
+                String xString = Integer.toString(x);
+                int y = rs.getInt("y");
+                String yString = Integer.toString(y);
+                int z = rs.getInt("z");
+                String zString = Integer.toString(z);
+                String state = rs.getString("state");
+                String dimensionString = rs.getString("dimension");
+                String type = rs.getString("type");
+                String player = rs.getString("player");
+                String time = rs.getString("time");
+                String date = rs.getString("date");
+                String valuesArray[] = {type, xString, yString, zString, dimensionString, state, player, time, date};
+                PrintToChat.prepareInteractionsPrint(valuesArray, sourcePlayer);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
+
 	public static void writeContainerTransaction(BlockPos pos, ItemStack stack, PlayerEntity player, LoggedEventType type) {
         String itemName = stack.toString();
         if (con == null) {
@@ -258,4 +318,15 @@ public class DbConn {
             e.printStackTrace();
         }
 	}
+
+
+    private static void onConnection () throws SQLException {
+        searchQuery = new PSBuilder(con, "SELECT type,x,y,z,dimension,state,player,date,time,rolledbackat FROM interactions WHERE");
+        searchQuery.addPredicate(JDBCType.VARCHAR, "action", "type = ?");
+        searchQuery.addPredicate(JDBCType.VARCHAR, "targets", "player = ?");
+        searchQuery.addPredicate(JDBCType.VARCHAR, "block", "state LIKE ?");
+        searchQuery.addPredicate(JDBCType.VARCHAR, "range",
+                "((x - ?)*(x - ?) + (y - ?)*(y - ?) + (z - ?)*(z - ?)) <= ?");
+        searchQuery.prepare();
+    }
 }

@@ -1,0 +1,19 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "tech.dttp.block.logger.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "ScreenHandlerMixin",
+    "ServerPlayerEntityMixin"
+  ],
+  "client": [
+  ],
+  "server": [
+    "BlockBreakMixin",
+    "BlockPlaceMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

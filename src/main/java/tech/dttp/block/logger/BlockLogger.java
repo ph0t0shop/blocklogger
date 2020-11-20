@@ -11,7 +11,6 @@ import tech.dttp.block.logger.util.PlayerUtils;
 import tech.dttp.block.logger.command.Commands;
 
 public class BlockLogger implements ModInitializer {
-    public static DbConn db;
     @Override
     public void onInitialize() {
 
@@ -22,13 +21,12 @@ public class BlockLogger implements ModInitializer {
         });
         // Connect to database when server is started
         ServerLifecycleEvents.SERVER_STARTED.register((server) -> {
-            db = new DbConn();
-            db.connect(server);
+            DbConn.connect(server);
             DbConn.server = server;
         });
         // Close DB connection when server is closed
         ServerLifecycleEvents.SERVER_STOPPED.register((server) -> {
-            db.close();
+            DbConn.close();
         });
 
         //Setup inspect mode
