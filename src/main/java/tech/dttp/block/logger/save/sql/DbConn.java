@@ -40,7 +40,7 @@ public class DbConn {
             con = DriverManager.getConnection("jdbc:sqlite:" + databaseFile.getPath().replace('\\', '/'));
             // Check if table exists
             ensureTable("interactions",
-                    "(type STRING, x INT NOT NULL, y INT NOT NULL, z INT NOT NULL, dimension STRING NOT NULL, state STRING, player STRING, date STRING,time STRING, rolledbackat INT DEFAULT -1)");
+                    "(type STRING, x INT NOT NULL, y INT NOT NULL, z INT NOT NULL, dimension STRING NOT NULL, state STRING, player STRING, time STRING, rolledbackat INT DEFAULT -1)");
             System.out.println("[BL] Connected to database");
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
@@ -65,13 +65,12 @@ public class DbConn {
             // Check if database isn't connected
             throw new IllegalStateException("Database connection not initialized");
         }
-        //Get date
+        //Get date and time
         LocalDateTime dateTime = LocalDateTime.now();
-        String date = dateTime.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-        String time = dateTime.format(DateTimeFormatter.ofPattern("HH:mm"));
+        String time = dateTime.format(DateTimeFormatter.ofPattern("YYYY-MM-dd HH:mm"));
         try {
             // Save data
-            String sql = "INSERT INTO interactions(type, x, y, z, dimension, state, player, date, time) VALUES(?,?,?,?,?,?,?,?,?)";
+            String sql = "INSERT INTO interactions(type, x, y, z, dimension, state, player, time) VALUES(?,?,?,?,?,?,?,?)";
             PreparedStatement ps = con.prepareStatement(sql);
             // set values to insert
             ps.setString(1, type.name());
@@ -85,8 +84,7 @@ public class DbConn {
             stateString = stateString.replace("}", "");
             ps.setString(6, stateString);
             ps.setString(7, getPlayerUuid(player));
-            ps.setString(8, date);
-            ps.setString(9, time);
+            ps.setString(8, time);
             ps.execute();
 
         } catch (SQLException e) {
@@ -105,7 +103,7 @@ public class DbConn {
         PrintToChat.print(sourcePlayer, message, Formatting.GOLD);
         try {
             //Read data
-            String sql = "SELECT type,x,y,z,dimension,state,player,date,time,rolledbackat FROM interactions WHERE x=? AND y=? AND z=? AND dimension=? LIMIT 10";
+            String sql = "SELECT type,x,y,z,dimension,state,player,time,rolledbackat FROM interactions WHERE x=? AND y=? AND z=? AND dimension=? ORDER BY time DESC LIMIT 10";
             if (eventType != null) {
                 sql += " AND type=?";
             }
@@ -133,8 +131,7 @@ public class DbConn {
                 String type = rs.getString("type");
                 String player = rs.getString("player");
                 String time = rs.getString("time");
-                String date = rs.getString("date");
-                String valuesArray[] = {type, xString, yString, zString, dimensionString, state, player, time, date};
+                String valuesArray[] = {type, xString, yString, zString, dimensionString, state, player, time};
                 PrintToChat.prepareInteractionsPrint(valuesArray, (ServerPlayerEntity) sourcePlayer);
             }
         } catch (SQLException e) {
@@ -172,7 +169,7 @@ public class DbConn {
         }
         PrintToChat.print(scs.getPlayer(), "Showing 10 most recent entries for "+state, Formatting.GOLD);
         try{
-            PreparedStatement ps = con.prepareStatement("SELECT type,x,y,z,date,time,player FROM interactions WHERE state=? AND dimension=? LIMIT 10");
+            PreparedStatement ps = con.prepareStatement("SELECT type,x,y,z,time,player FROM interactions WHERE state=? AND dimension=? LIMIT 10");
             ps.setString(1, state);
             ps.setString(2, dimension);
             ResultSet rs = ps.executeQuery();
@@ -201,7 +198,7 @@ public class DbConn {
         }
         PrintToChat.print(scs.getPlayer(), "Showing 10 most recent entries for "+player+" in "+dimension, Formatting.GOLD);
         try{
-            PreparedStatement ps = con.prepareStatement("SELECT type,x,y,z,date,time,state FROM interactions WHERE player=? AND dimension=? LIMIT 10");
+            PreparedStatement ps = con.prepareStatement("SELECT type,x,y,z,time,state FROM interactions WHERE player=? AND dimension=? LIMIT 10");
             ps.setString(1, player);
             ps.setString(2, dimension);
             ResultSet rs = ps.executeQuery();
@@ -211,9 +208,8 @@ public class DbConn {
                 int y = rs.getInt(3);
                 int z = rs.getInt(4);
                 String date = rs.getString(5);
-                String time = rs.getString(6);
-                String state = rs.getString(7);
-                String message = state+" was "+type+" at "+x+" "+y+" "+z+" in "+PlayerUtils.getPlayerDimension(scs.getPlayer())+" by "+player+" at "+time+" on "+date;
+                String state = rs.getString(6);
+                String message = state+" was "+type+" at "+x+" "+y+" "+z+" in "+PlayerUtils.getPlayerDimension(scs.getPlayer())+" by "+player+" at "+date;
                 PrintToChat.print(scs.getPlayer(),message, Formatting.DARK_AQUA);
             }
         }
@@ -236,11 +232,10 @@ public class DbConn {
         }
         //Get date
         LocalDateTime dateTime = LocalDateTime.now();
-        String date = dateTime.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-        String time = dateTime.format(DateTimeFormatter.ofPattern("HH:mm"));
+        String time = dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
         try {
             // Save data
-            String sql = "INSERT INTO interactions(type, x, y, z, dimension, state, player, date, time) VALUES(?,?,?,?,?,?,?,?,?)";
+            String sql = "INSERT INTO interactions(type, x, y, z, dimension, state, player, time) VALUES(?,?,?,?,?,?,?,?)";
             PreparedStatement ps = con.prepareStatement(sql);
             // set values to insert
             ps.setString(1, type.name());
@@ -250,8 +245,7 @@ public class DbConn {
             ps.setString(5, PlayerUtils.getPlayerDimension(player));
             ps.setString(6, itemName);
             ps.setString(7, getPlayerUuid(player));
-            ps.setString(8, date);
-            ps.setString(9, time);
+            ps.setString(8, time);
             ps.execute();
 
         } catch (SQLException e) {

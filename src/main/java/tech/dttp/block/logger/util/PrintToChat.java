@@ -26,7 +26,7 @@ public class PrintToChat {
         if(index > 0){
             trimmed =  state.substring(0, index);
         }
-        String message = trimmed+" was "+valuesArray[0]+" by "+valuesArray[6]+" at "+valuesArray[7]+" "+valuesArray[8];
+        String message = trimmed+" was "+valuesArray[0]+" by "+valuesArray[6]+" at "+valuesArray[7]/*+" "+valuesArray[8]*/;
         //Print message
         PrintToChat.print(sender, message, Formatting.DARK_AQUA);
     }
