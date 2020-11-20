@@ -43,5 +43,6 @@ build/
 .gradle/
 bin/
 run/
+out/
 .mixin*
 config/
