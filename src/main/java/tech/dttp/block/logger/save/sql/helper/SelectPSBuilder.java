@@ -1,18 +1,14 @@
-package tech.dttp.block.logger.save.sql;
+package tech.dttp.block.logger.save.sql.helper;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class PSBuilder {
-    private Connection conn;
-    private String baseQuery;
+public class SelectPSBuilder extends PSBuilder {
     private HashMap<String, PSPredicate> predicates = new HashMap<>();
-    private PreparedStatement ps;
 
-    public PSBuilder(Connection conn, String baseQuery) {
-        this.conn = conn;
-        this.baseQuery = baseQuery;
+    public SelectPSBuilder(Connection conn, String baseQuery) {
+        super(conn, baseQuery);
     }
 
     public void addPredicate(SQLType type, String name, String predicate, int numArgs) {
@@ -23,9 +19,10 @@ public class PSBuilder {
         this.addPredicate(type, name, predicate, (int) predicate.chars().filter(c -> c == '?').count());
     }
 
-    public void prepare () throws SQLException {
+    @Override
+    PreparedStatement createStatement() throws SQLException {
         StringBuilder query = new StringBuilder(baseQuery);
-        query.append(' ');
+        query.append(" WHERE ");
         boolean first = true;
 
         for (String param : params()) {
@@ -37,33 +34,22 @@ public class PSBuilder {
             }
             query.append("((").append(predicate.predicate).append(") OR ?)");
         }
-        ps = conn.prepareStatement(query.toString());
+        return conn.prepareStatement(query.toString());
     }
 
+    @Override
     public Runner createRunner() {
-        return new Runner();
+        return new SelectRunner();
     }
 
-    private ArrayList<String> params() {
+    @Override
+    protected ArrayList<String> params() {
         ArrayList<String> params = new ArrayList<>(predicates.keySet());
         params.sort(String::compareTo);
         return params;
     }
 
-    public PreparedStatement getStatement() {
-        return ps;
-    }
-
-    public class Runner {
-        private HashMap<String, Object[]> paramValues = new HashMap<>();
-
-        public Runner() {
-        }
-
-        public void fillParameter (String name, Object... value) {
-            this.paramValues.put(name, value);
-        }
-
+    public class SelectRunner extends Runner {
         public ResultSet execute() throws SQLException { // TODO: thread safety
             int i = 1; // 1-indexed, ugh
             ps.clearParameters();
@@ -83,27 +69,12 @@ public class PSBuilder {
             }
             return ps.executeQuery();
         }
-
-        private void setDefaultVal(PreparedStatement ps, int i, SQLType type) throws SQLException {
-            // ps.setNull(i, type.getVendorTypeNumber());
-            switch (type.getVendorTypeNumber()) {
-                case Types.NCHAR:
-                case Types.NVARCHAR:
-                case Types.VARCHAR:
-                    ps.setString(i, "");
-                    break;
-                default:
-                    ps.setNull(i, type.getVendorTypeNumber());
-                    break;
-            }
-        }
     }
 
-
     private static class PSPredicate {
-        private String predicate;
-        private int numArgs;
-        private SQLType type;
+        protected String predicate;
+        protected int numArgs;
+        protected SQLType type;
 
         public PSPredicate(String predicate, int numArgs, SQLType type) {
             this.predicate = predicate;
