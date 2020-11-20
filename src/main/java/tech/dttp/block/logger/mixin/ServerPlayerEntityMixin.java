@@ -27,7 +27,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Sc
     @Inject(method="openHandledScreen", at=@At(value="INVOKE", target="Lnet/minecraft/screen/ScreenHandler;addListener(Lnet/minecraft/screen/ScreenHandlerListener;)V"), locals= LocalCapture.CAPTURE_FAILEXCEPTION)
     public void handledScreenMixin(NamedScreenHandlerFactory screenHandlerFactory, CallbackInfoReturnable<OptionalInt> cir, ScreenHandler screenHandler) { // NamedScreenHandlerFactory screenHandler, CallbackInfoReturnable<OptionalInt> cir, ScreenHandler var2, ServerPlayNetworkHandler var4, OpenScreenS2CPacket var5
         if (screenHandlerFactory instanceof LockableContainerBlockEntity) {
-            ((IScreenHandlerMixin)screenHandler).setLoggingInfo((LockableContainerBlockEntity) screenHandlerFactory, this);
+            ((IScreenHandlerMixin)screenHandler).setLoggingInfo((LockableContainerBlockEntity) screenHandlerFactory);
         }
     }
 }
