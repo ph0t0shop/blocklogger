@@ -3,19 +3,15 @@ package tech.dttp.block.logger.save.sql;
 import net.minecraft.block.BlockState;
 import net.minecraft.command.argument.BlockStateArgument;
 import net.minecraft.command.argument.GameProfileArgumentType;
-import net.minecraft.command.argument.UuidArgumentType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.PlayerManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.WorldSavePath;
 
 import net.minecraft.util.registry.Registry;
-import org.jetbrains.annotations.Nullable;
 import net.minecraft.util.math.BlockPos;
 import tech.dttp.block.logger.util.LoggedEventType;
 import tech.dttp.block.logger.util.PlayerUtils;
@@ -25,11 +21,9 @@ import java.io.File;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.UUID;
 
-import com.mojang.authlib.yggdrasil.response.User;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 public class DbConn {
@@ -148,7 +142,7 @@ public class DbConn {
         }
     }
 
-    private static String getDisplayName(UUID uuid) {
+    public static String getDisplayName(UUID uuid) {
         MinecraftServer server = DbConn.server;
         String name = server.getUserCache().getByUuid(uuid).getName();
         return name;
@@ -207,7 +201,7 @@ public class DbConn {
         }
         PrintToChat.print(scs.getPlayer(), "Showing 10 most recent entries for "+player+" in "+dimension, Formatting.GOLD);
         try{
-            PreparedStatement ps = con.prepareStatement("SELECT type,x,y,z,time,state FROM interactions WHERE player=? AND dimension=? LIMIT 10");
+            PreparedStatement ps = con.prepareStatement("SELECT type,x,y,z,time,state FROM interactions WHERE player=? AND dimension=? ORDER BY time DESC LIMIT 10");
             ps.setString(1, player);
             ps.setString(2, dimension);
             ResultSet rs = ps.executeQuery();
@@ -315,7 +309,7 @@ public class DbConn {
 
 
     private static void onConnection () throws SQLException {
-        searchQuery = new PSBuilder(con, "SELECT type,x,y,z,dimension,state,player,date,time,rolledbackat FROM interactions WHERE");
+        searchQuery = new PSBuilder(con, "SELECT type,x,y,z,dimension,state,player,time,rolledbackat FROM interactions WHERE");
         searchQuery.addPredicate(JDBCType.VARCHAR, "action", "type = ?");
         searchQuery.addPredicate(JDBCType.VARCHAR, "targets", "player = ?");
         searchQuery.addPredicate(JDBCType.VARCHAR, "block", "state LIKE ?");
@@ -323,4 +317,4 @@ public class DbConn {
                 "((x - ?)*(x - ?) + (y - ?)*(y - ?) + (z - ?)*(z - ?)) <= ?");
         searchQuery.prepare();
     }
-}
+}       

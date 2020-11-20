@@ -2,10 +2,8 @@ package tech.dttp.block.logger;
 
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.LiteralText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
-import tech.dttp.block.logger.command.InspectCommand;
 import tech.dttp.block.logger.save.sql.DbConn;
 import tech.dttp.block.logger.util.PlayerUtils;
 import tech.dttp.block.logger.util.PrintToChat;
