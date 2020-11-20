@@ -13,6 +13,8 @@ import net.minecraft.util.WorldSavePath;
 
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.math.BlockPos;
+import tech.dttp.block.logger.save.sql.helper.InsertPSBuilder;
+import tech.dttp.block.logger.save.sql.helper.SelectPSBuilder;
 import tech.dttp.block.logger.util.LoggedEventType;
 import tech.dttp.block.logger.util.PlayerUtils;
 import tech.dttp.block.logger.util.PrintToChat;
@@ -30,7 +32,9 @@ public class DbConn {
     private static Connection con = null;
     public static MinecraftServer server = null;
 
-    private static PSBuilder searchQuery;
+    private static SelectPSBuilder searchQuery;
+    private static InsertPSBuilder writeInteractionsQuery;
+    private static SelectPSBuilder readEventsQuery;
 
     public static void connect(MinecraftServer server) {
         try {
@@ -71,71 +75,44 @@ public class DbConn {
         //Get date and time
         LocalDateTime dateTime = LocalDateTime.now();
         String time = dateTime.format(DateTimeFormatter.ofPattern("YYYY-MM-dd HH:mm"));
+        InsertPSBuilder.InsertRunner runner = (InsertPSBuilder.InsertRunner) writeInteractionsQuery.createRunner();
         try {
-            // Save data
-            String sql = "INSERT INTO interactions(type, x, y, z, dimension, state, player, time) VALUES(?,?,?,?,?,?,?,?)";
-            PreparedStatement ps = con.prepareStatement(sql);
-            // set values to insert
-            ps.setString(1, type.name());
-            ps.setInt(2, pos.getX());
-            ps.setInt(3, pos.getY());
-            ps.setInt(4, pos.getZ());
-            ps.setString(5, PlayerUtils.getPlayerDimension(player));
-            //Remove { and } from the block entry
-            String stateString = state.toString();
-            stateString = stateString.replace("Block{", "");
-            stateString = stateString.replace("}", "");
-            ps.setString(6, stateString);
-            ps.setString(7, getPlayerUuid(player));
-            ps.setString(8, time);
-            ps.execute();
+            runner.fillParameter("type", type.name());
+            runner.fillParameter("pos", pos.getX(), pos.getY(), pos.getZ());
+            runner.fillParameter("dimension", PlayerUtils.getPlayerDimension(player));
+            runner.fillParameter("state", state.toString().replace("Block{", "").replace("}", ""));
+            runner.fillParameter("player", getPlayerUuid(player));
+            runner.fillParameter("time", time);
 
+            runner.execute();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    public static void readEvents(BlockPos pos, String dimension, LoggedEventType eventType, PlayerEntity sourcePlayer) {
+    public static void readEvents(BlockPos pos, String dimension, LoggedEventType eventType, ServerPlayerEntity sourcePlayer) {
         // Check if database is connected
         if (con == null) {
             throw new IllegalStateException("Database connection not initialized");
         }
-        PreparedStatement ps;
-        ResultSet rs;
         String message = "Blocklogger data for " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + " in "+ dimension;
         PrintToChat.print(sourcePlayer, message, Formatting.GOLD);
+
+        SelectPSBuilder.SelectRunner runner = (SelectPSBuilder.SelectRunner) readEventsQuery.createRunner();
         try {
             //Read data
-            String sql = "SELECT type,x,y,z,dimension,state,player,time,rolledbackat FROM interactions WHERE x=? AND y=? AND z=? AND dimension=? ORDER BY time DESC LIMIT 10";
+            runner.fillParameter("pos", pos.getX(), pos.getY(), pos.getZ());
+            runner.fillParameter("dimension", dimension);
             if (eventType != null) {
-                sql += " AND type=?";
+                runner.fillParameter("type", eventType.name());
             }
-            ps = con.prepareStatement(sql);
-            ps.setInt(1, pos.getX());
-            ps.setInt(2, pos.getY());
-            ps.setInt(3, pos.getZ());
-            ps.setString(4, dimension);
-            if (eventType != null) {
-                ps.setString(5, eventType.name());
-            }
-            rs = ps.executeQuery();
+
+            ResultSet rs = runner.execute();
             // Repeat for every entry
             while (rs.next()) {
                 //Get the info from the database and return
-                //For all integers, create a String with the correct values
-                int x = rs.getInt("x");
-                String xString = Integer.toString(x);
-                int y = rs.getInt("y");
-                String yString = Integer.toString(y);
-                int z = rs.getInt("z");
-                String zString = Integer.toString(z);
-                String state = rs.getString("state");
-                String dimensionString = rs.getString("dimension");
-                String type = rs.getString("type");
-                String player = rs.getString("player");
-                String time = rs.getString("time");
-                String valuesArray[] = {type, xString, yString, zString, dimensionString, state, player, time};
-                PrintToChat.prepareInteractionsPrint(valuesArray, (ServerPlayerEntity) sourcePlayer);
+                PrintToChat.prepareInteractionsPrint(toStringMap(rs,
+                        "x", "y", "z", "state", "dimension", "type", "player", "time"), sourcePlayer);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -156,6 +133,7 @@ public class DbConn {
     public static UUID getUuid(String uuid) {
         return UUID.fromString(uuid);
     }
+
     public static void close() {
         // Closes connection to database
         try {
@@ -165,62 +143,6 @@ public class DbConn {
         }
     }
 
-	public static void readFromState(String state, ServerCommandSource scs, String dimension) throws CommandSyntaxException {
-        if (con == null) {
-            // Check if database isn't connected
-            throw new IllegalStateException("Database connection not initialized");
-        }
-        PrintToChat.print(scs.getPlayer(), "Showing 10 most recent entries for "+state, Formatting.GOLD);
-        try{
-            PreparedStatement ps = con.prepareStatement("SELECT type,x,y,z,time,player FROM interactions WHERE state=? AND dimension=? LIMIT 10");
-            ps.setString(1, state);
-            ps.setString(2, dimension);
-            ResultSet rs = ps.executeQuery();
-            while(rs.next()){
-                String type = rs.getString(1);
-                int x = rs.getInt(2);
-                int y = rs.getInt(3);
-                int z = rs.getInt(4);
-                String date = rs.getString(5);
-                String time = rs.getString(6);
-                String player = rs.getString(7);
-                String message = state+" was "+type+" at "+x+" "+y+" "+z+" in "+PlayerUtils.getPlayerDimension(scs.getPlayer())+" by "+player+" at "+time+" on "+date;
-                PrintToChat.print(scs.getPlayer(),message, Formatting.DARK_AQUA);
-            }
-        }
-        catch(SQLException e){
-            e.printStackTrace();
-        }
-	}
-
-	public static void readFromPlayer(ServerCommandSource scs, String player, String dimension)
-            throws CommandSyntaxException {
-        if (con == null) {
-            // Check if database isn't connected
-            throw new IllegalStateException("Database connection not initialized");
-        }
-        PrintToChat.print(scs.getPlayer(), "Showing 10 most recent entries for "+player+" in "+dimension, Formatting.GOLD);
-        try{
-            PreparedStatement ps = con.prepareStatement("SELECT type,x,y,z,time,state FROM interactions WHERE player=? AND dimension=? ORDER BY time DESC LIMIT 10");
-            ps.setString(1, player);
-            ps.setString(2, dimension);
-            ResultSet rs = ps.executeQuery();
-            while(rs.next()){
-                String type = rs.getString(1);
-                int x = rs.getInt(2);
-                int y = rs.getInt(3);
-                int z = rs.getInt(4);
-                String date = rs.getString(5);
-                String state = rs.getString(6);
-                String message = state+" was "+type+" at "+x+" "+y+" "+z+" in "+PlayerUtils.getPlayerDimension(scs.getPlayer())+" by "+player+" at "+date;
-                PrintToChat.print(scs.getPlayer(),message, Formatting.DARK_AQUA);
-            }
-        }
-        catch(SQLException e){
-            e.printStackTrace();
-        }
-	}
-
     public static void readAdvanced(ServerCommandSource scs, HashMap<String, Object> propertyMap) throws CommandSyntaxException {
         ServerPlayerEntity sourcePlayer = scs.getPlayer();
         // Check if database is connected
@@ -228,17 +150,17 @@ public class DbConn {
             throw new IllegalStateException("Database connection not initialized");
         }
 
-        PSBuilder.Runner queryRunner = searchQuery.createRunner();
+        SelectPSBuilder.SelectRunner runner = (SelectPSBuilder.SelectRunner) searchQuery.createRunner();
         if (propertyMap.containsKey("action")) {
-            queryRunner.fillParameter("action", (String) propertyMap.get("action"));
+            runner.fillParameter("action", (String) propertyMap.get("action"));
         }
         if (propertyMap.containsKey("targets")) {
             GameProfileArgumentType.GameProfileArgument targets = (GameProfileArgumentType.GameProfileArgument)propertyMap.get("targets");
-            queryRunner.fillParameter("targets", targets.getNames(scs).stream().findFirst().get().getId().toString());
+            runner.fillParameter("targets", targets.getNames(scs).stream().map(gp -> gp.getId().toString()).toArray());
         }
         if (propertyMap.containsKey("block")) {
             BlockStateArgument block = (BlockStateArgument)propertyMap.get("block");
-            queryRunner.fillParameter("block", Registry.BLOCK.getId(block.getBlockState().getBlock()).toString() + "%");
+            runner.fillParameter("block", Registry.BLOCK.getId(block.getBlockState().getBlock()).toString() + "%");
         }
         if (propertyMap.containsKey("range")) {
             int range = (Integer)propertyMap.get("range");
@@ -247,35 +169,30 @@ public class DbConn {
             int x = playerPos.getX();
             int y = playerPos.getY();
             int z = playerPos.getZ();
-            queryRunner.fillParameter("range", x, x, y, y, z, z, range);
+            runner.fillParameter("range", x, x, y, y, z, z, range);
         }
         String message = "Blocklogger data for query";
         PrintToChat.print(sourcePlayer, message, Formatting.GOLD);
         try {
             //Read data
-            ResultSet rs = queryRunner.execute();
+            ResultSet rs = runner.execute();
             // Repeat for every entry
             while (rs.next()) {
                 //Get the info from the database and return
-                //For all integers, create a String with the correct values
-                int x = rs.getInt("x");
-                String xString = Integer.toString(x);
-                int y = rs.getInt("y");
-                String yString = Integer.toString(y);
-                int z = rs.getInt("z");
-                String zString = Integer.toString(z);
-                String state = rs.getString("state");
-                String dimensionString = rs.getString("dimension");
-                String type = rs.getString("type");
-                String player = rs.getString("player");
-                String time = rs.getString("time");
-                String date = rs.getString("date");
-                String valuesArray[] = {type, xString, yString, zString, dimensionString, state, player, time, date};
-                PrintToChat.prepareInteractionsPrint(valuesArray, sourcePlayer);
+                PrintToChat.prepareInteractionsPrint(toStringMap(rs,
+                        "x", "y", "z", "state", "dimension", "type", "player", "time"), sourcePlayer);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    private static HashMap<String, String> toStringMap (ResultSet rs, String... args) throws SQLException {
+        HashMap<String, String> result = new HashMap<>();
+        for (String arg : args) {
+            result.put(arg, rs.getString(arg));
+        }
+        return result;
     }
 
 	public static void writeContainerTransaction(BlockPos pos, ItemStack stack, PlayerEntity player, LoggedEventType type) {
@@ -287,21 +204,16 @@ public class DbConn {
         //Get date
         LocalDateTime dateTime = LocalDateTime.now();
         String time = dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        InsertPSBuilder.InsertRunner runner = (InsertPSBuilder.InsertRunner) writeInteractionsQuery.createRunner();
         try {
-            // Save data
-            String sql = "INSERT INTO interactions(type, x, y, z, dimension, state, player, time) VALUES(?,?,?,?,?,?,?,?)";
-            PreparedStatement ps = con.prepareStatement(sql);
-            // set values to insert
-            ps.setString(1, type.name());
-            ps.setInt(2, pos.getX());
-            ps.setInt(3, pos.getY());
-            ps.setInt(4, pos.getZ());
-            ps.setString(5, PlayerUtils.getPlayerDimension(player));
-            ps.setString(6, itemName);
-            ps.setString(7, getPlayerUuid(player));
-            ps.setString(8, time);
-            ps.execute();
+            runner.fillParameter("type", type.name());
+            runner.fillParameter("pos", pos.getX(), pos.getY(), pos.getZ());
+            runner.fillParameter("dimension", PlayerUtils.getPlayerDimension(player));
+            runner.fillParameter("state", itemName);
+            runner.fillParameter("player", getPlayerUuid(player));
+            runner.fillParameter("time", time);
 
+            runner.execute();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -309,12 +221,27 @@ public class DbConn {
 
 
     private static void onConnection () throws SQLException {
-        searchQuery = new PSBuilder(con, "SELECT type,x,y,z,dimension,state,player,time,rolledbackat FROM interactions WHERE");
+        searchQuery = new SelectPSBuilder(con, "SELECT type,x,y,z,dimension,state,player,time,rolledbackat FROM interactions", "ORDER BY time DESC LIMIT 10");
         searchQuery.addPredicate(JDBCType.VARCHAR, "action", "type = ?");
-        searchQuery.addPredicate(JDBCType.VARCHAR, "targets", "player = ?");
+        searchQuery.addPredicate(JDBCType.ARRAY, "targets", "player IN (?)");
         searchQuery.addPredicate(JDBCType.VARCHAR, "block", "state LIKE ?");
         searchQuery.addPredicate(JDBCType.VARCHAR, "range",
                 "((x - ?)*(x - ?) + (y - ?)*(y - ?) + (z - ?)*(z - ?)) <= ?");
         searchQuery.prepare();
+
+        readEventsQuery = new SelectPSBuilder(con, "SELECT type,x,y,z,dimension,state,player,time,rolledbackat FROM interactions", "ORDER BY time DESC LIMIT 10");
+        readEventsQuery.addPredicate(JDBCType.VARCHAR, "pos","x = ? AND y = ? AND z = ?");
+        readEventsQuery.addPredicate(JDBCType.VARCHAR, "dimension","dimension = ?");
+        readEventsQuery.addPredicate(JDBCType.VARCHAR, "type","type = ?");
+        readEventsQuery.prepare();
+
+        writeInteractionsQuery = new InsertPSBuilder(con, "INSERT INTO interactions");
+        writeInteractionsQuery.addFillable("type");
+        writeInteractionsQuery.addFillable("pos", "x", "y", "z");
+        writeInteractionsQuery.addFillable("dimension");
+        writeInteractionsQuery.addFillable("state");
+        writeInteractionsQuery.addFillable("player");
+        writeInteractionsQuery.addFillable("time");
+        writeInteractionsQuery.prepare();
     }
 }       
