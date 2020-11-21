@@ -13,9 +13,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import tech.dttp.block.logger.save.sql.DbConn;
@@ -60,6 +58,31 @@ public abstract class ScreenHandlerMixin implements IScreenHandlerMixin {
             logChange(player, slot.getStack(), stack);
         }
         slot.setStack(stack);
+    }
+
+    @Redirect(method ="method_30010", at=@At(value="INVOKE", target="Lnet/minecraft/screen/ScreenHandler;transferSlot(Lnet/minecraft/entity/player/PlayerEntity;I)Lnet/minecraft/item/ItemStack;", remap=true), remap = false)
+    public ItemStack transferSlotRedirect(ScreenHandler handler, PlayerEntity player, int slotIndex, int i, int j, SlotActionType slotActionType, PlayerEntity _player) {
+        Slot sourceSlot = this.slots.get(slotIndex);
+        if (sourceSlot == null) return handler.transferSlot(player, slotIndex);
+        int origStackCount = sourceSlot.getStack().getCount();
+        ItemStack result = handler.transferSlot(player, slotIndex);
+        if (shouldLogUpdates) {
+            int newStackCount = sourceSlot.getStack().getCount();
+            ItemStack clonedResult = result.copy();
+            boolean isAdd = sourceSlot.inventory instanceof PlayerInventory;
+            clonedResult.setCount(origStackCount - newStackCount);
+            logChange(player, isAdd ? ItemStack.EMPTY : clonedResult, isAdd ? clonedResult : ItemStack.EMPTY);
+        }
+        return result;
+    }
+
+    @Inject(method ="method_30010", at=@At(value="INVOKE", target="Lnet/minecraft/item/ItemStack;increment(I)V", remap=true, ordinal=0), remap = false, locals = LocalCapture.CAPTURE_FAILEXCEPTION)
+    public void incrementInject(int i, int j, SlotActionType slotActionType, PlayerEntity playerEntity, CallbackInfoReturnable<ItemStack> cir, ItemStack itemStack, PlayerInventory playerInventory, Slot slot4, ItemStack itemStack7, ItemStack itemStack8, int q) {
+        if (shouldLogUpdates && !(slot4.inventory instanceof PlayerInventory)) {
+            ItemStack newItemStack = itemStack7.copy();
+            newItemStack.increment(q);
+            logChange(playerEntity, itemStack7, newItemStack);
+        }
     }
 
     private void logChange(PlayerEntity player, ItemStack oldStack, ItemStack newStack) {
