@@ -25,16 +25,16 @@ import java.util.List;
 @Mixin(ScreenHandler.class)
 public abstract class ScreenHandlerMixin implements IScreenHandlerMixin {
     @Shadow @Final public List<Slot> slots;
-    private BlockEntity loggingBE;
+    private BlockPos loggingPos;
     private boolean shouldLogUpdates = false;
 
     @Override
-    public void setLoggingInfo(BlockEntity loggingBE) {
+    public void setLoggingInfo(BlockPos loggingPos) {
         if (this.slots.size() == 0) { // Improvement: Check possible race condition where slots aren't yet initialized here
             System.out.println("[BL] Empty inventory opened for logging. Skipping.");
             return;
         }
-        this.loggingBE = loggingBE;
+        this.loggingPos = loggingPos;
         this.shouldLogUpdates = true;
     }
 //
@@ -107,8 +107,7 @@ public abstract class ScreenHandlerMixin implements IScreenHandlerMixin {
         boolean oldEmpty = oldStack.isEmpty(); // we know only one is empty
         ItemStack significantStack = oldEmpty ? newStack : oldStack;
         LoggedEventType eventType = oldEmpty ? LoggedEventType.added : LoggedEventType.removed;
-        BlockPos pos = loggingBE.getPos();
         // System.out.println(pos.toString() + ": " + player.getName().getString() + " " + eventType.toString() + " " + significantStack.toString());
-        DbConn.writeContainerTransaction(pos, significantStack, player, eventType);
+        DbConn.writeContainerTransaction(loggingPos, significantStack, player, eventType);
     }
 }

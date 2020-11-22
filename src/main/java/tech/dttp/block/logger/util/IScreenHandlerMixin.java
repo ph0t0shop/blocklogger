@@ -1,7 +1,7 @@
 package tech.dttp.block.logger.util;
 
-import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.util.math.BlockPos;
 
 public interface IScreenHandlerMixin {
-    void setLoggingInfo(BlockEntity pos);
+    void setLoggingInfo(BlockPos pos);
 }
