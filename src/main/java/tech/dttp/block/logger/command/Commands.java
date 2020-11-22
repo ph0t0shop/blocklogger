@@ -16,5 +16,6 @@ public final class Commands {
 
                 InspectCommand.register(blockLoggerNode);
                 SearchCommand.register(blockLoggerNode);
+                SQLCommand.register(blockLoggerNode);
         }
 }
