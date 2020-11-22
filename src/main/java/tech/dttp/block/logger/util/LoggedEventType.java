@@ -11,5 +11,6 @@ public enum LoggedEventType {
     added,
     removed,
     spawned,
-    killed
+    killed,
+    used
 }

@@ -4,6 +4,7 @@
   "package": "tech.dttp.block.logger.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "BlockUseMixin",
     "ScreenHandlerMixin",
     "ServerPlayerEntityMixin"
   ],
