@@ -6,7 +6,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class InsertPSBuilder extends PSBuilder {
+public class InsertPSBuilder extends PSBuilder<Boolean> {
     private HashMap<String, String[]> fillables = new HashMap<>();
 
     public InsertPSBuilder(Connection conn, String baseQuery, String querySuffix) {
@@ -62,7 +62,7 @@ public class InsertPSBuilder extends PSBuilder {
     }
 
     @Override
-    public Runner createRunner() {
+    public InsertRunner createRunner() {
         return new InsertRunner();
     }
 
@@ -74,8 +74,9 @@ public class InsertPSBuilder extends PSBuilder {
         this.addFillable(name, name);
     }
 
-    public class InsertRunner extends Runner {
-        public boolean execute() throws SQLException { // TODO: thread safety
+    public class InsertRunner extends Runner<Boolean> {
+        @Override
+        public Boolean execute() throws SQLException { // TODO: thread safety
             int i = 1; // 1-indexed, ugh
             ps.clearParameters();
             for (String fillable : params()) {

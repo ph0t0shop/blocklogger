@@ -76,7 +76,7 @@ public class DbConn {
         //Get date and time
         LocalDateTime dateTime = LocalDateTime.now();
         String time = dateTime.format(DateTimeFormatter.ofPattern("YYYY-MM-dd HH:mm"));
-        InsertPSBuilder.InsertRunner runner = (InsertPSBuilder.InsertRunner) writeInteractionsQuery.createRunner();
+        InsertPSBuilder.InsertRunner runner = writeInteractionsQuery.createRunner();
         try {
             runner.fillParameter("type", type.name());
             runner.fillParameter("pos", pos.getX(), pos.getY(), pos.getZ());
@@ -104,7 +104,7 @@ public class DbConn {
         String message = "Blocklogger data for " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + " in "+ dimension;
         PrintToChat.print(sourcePlayer, message, Formatting.GOLD);
 
-        SelectPSBuilder.SelectRunner runner = (SelectPSBuilder.SelectRunner) readEventsQuery.createRunner();
+        SelectPSBuilder.SelectRunner runner = readEventsQuery.createRunner();
         try {
             //Read data
             runner.fillParameter("pos", pos.getX(), pos.getY(), pos.getZ());
@@ -156,7 +156,7 @@ public class DbConn {
             throw new IllegalStateException("Database connection not initialized");
         }
 
-        SelectPSBuilder.SelectRunner runner = (SelectPSBuilder.SelectRunner) searchQuery.createRunner();
+        SelectPSBuilder.SelectRunner runner = searchQuery.createRunner();
         if (propertyMap.containsKey("action")) {
             runner.fillParameter("action", (String) propertyMap.get("action"));
         }
@@ -210,7 +210,7 @@ public class DbConn {
         //Get date
         LocalDateTime dateTime = LocalDateTime.now();
         String time = dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-        InsertPSBuilder.InsertRunner runner = (InsertPSBuilder.InsertRunner) writeInteractionsQuery.createRunner();
+        InsertPSBuilder.InsertRunner runner = writeInteractionsQuery.createRunner();
         try {
             runner.fillParameter("type", type.name());
             runner.fillParameter("pos", pos.getX(), pos.getY(), pos.getZ());
@@ -258,7 +258,7 @@ public class DbConn {
         //Get date
         LocalDateTime dateTime = LocalDateTime.now();
         String time = dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-        InsertPSBuilder.InsertRunner runner = (InsertPSBuilder.InsertRunner) writeInteractionsQuery.createRunner();
+        InsertPSBuilder.InsertRunner runner = writeInteractionsQuery.createRunner();
         try {
             runner.fillParameter("type", type.name());
             runner.fillParameter("pos", pos.getX(), pos.getY(), pos.getZ());

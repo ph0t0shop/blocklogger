@@ -4,7 +4,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class SelectPSBuilder extends PSBuilder {
+public class SelectPSBuilder extends PSBuilder<ResultSet> {
     private HashMap<String, PSPredicate> predicates = new HashMap<>();
 
     public SelectPSBuilder(Connection conn, String baseQuery, String querySuffix) {
@@ -43,7 +43,7 @@ public class SelectPSBuilder extends PSBuilder {
     }
 
     @Override
-    public Runner createRunner() {
+    public SelectRunner createRunner() {
         return new SelectRunner();
     }
 
@@ -54,7 +54,8 @@ public class SelectPSBuilder extends PSBuilder {
         return params;
     }
 
-    public class SelectRunner extends Runner {
+    public class SelectRunner extends Runner<ResultSet> {
+        @Override
         public ResultSet execute() throws SQLException { // TODO: thread safety
             int i = 1; // 1-indexed, ugh
             ps.clearParameters();

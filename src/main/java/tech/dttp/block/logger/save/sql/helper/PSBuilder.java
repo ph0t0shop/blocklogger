@@ -4,7 +4,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public abstract class PSBuilder {
+public abstract class PSBuilder<T> {
     protected Connection conn;
     protected String baseQuery;
     protected String querySuffix;
@@ -28,13 +28,13 @@ public abstract class PSBuilder {
 
     abstract PreparedStatement createStatement() throws SQLException;
 
-    public abstract Runner createRunner();
+    public abstract Runner<T> createRunner();
 
     public final PreparedStatement getStatement() {
         return ps;
     }
 
-    public abstract static class Runner {
+    public abstract static class Runner<T> {
         protected HashMap<String, Object[]> paramValues = new HashMap<>();
 
         public void fillParameter (String name, Object... value) {
@@ -57,5 +57,7 @@ public abstract class PSBuilder {
                     break;
             }
         }
+
+        public abstract T execute() throws SQLException;
     }
 }
