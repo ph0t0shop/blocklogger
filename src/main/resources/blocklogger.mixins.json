@@ -11,8 +11,7 @@
   ],
   "server": [
     "BlockBreakMixin",
-    "BlockPlaceMixin",
-    "BucketItemMixin"
+    "BlockPlaceMixin"
   ],
   "injectors": {
     "defaultRequire": 1

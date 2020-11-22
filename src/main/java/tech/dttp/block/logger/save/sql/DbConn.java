@@ -9,6 +9,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Util;
 import net.minecraft.util.WorldSavePath;
 
 import net.minecraft.util.registry.Registry;
@@ -248,5 +249,44 @@ public class DbConn {
         writeInteractionsQuery.addFillable("player");
         writeInteractionsQuery.addFillable("time");
         writeInteractionsQuery.prepare();
+    }
+    public static void writeFluidInteraction(BlockPos pos, String state, PlayerEntity player, LoggedEventType type, boolean isPlayer) {
+        if (con == null) {
+            // Check if database isn't connected
+            throw new IllegalStateException("Database connection not initialized");
+        }
+        //Get date
+        LocalDateTime dateTime = LocalDateTime.now();
+        String time = dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        InsertPSBuilder.InsertRunner runner = (InsertPSBuilder.InsertRunner) writeInteractionsQuery.createRunner();
+        try {
+            runner.fillParameter("type", type.name());
+            runner.fillParameter("pos", pos.getX(), pos.getY(), pos.getZ());
+            runner.fillParameter("dimension", PlayerUtils.getPlayerDimension(player));
+            runner.fillParameter("state", state);
+            if(isPlayer){
+                runner.fillParameter("player", getPlayerUuid(player));
+            }
+            else{
+                runner.fillParameter("player", Util.NIL_UUID);
+            }
+            runner.fillParameter("time", time);
+
+            runner.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    public static void cusQuery(String query, PlayerEntity player){
+        try{
+            PreparedStatement ps = con.prepareStatement(query);
+            ResultSet rs = ps.executeQuery();
+            while(rs.next()){
+                PrintToChat.print(player, rs.getString("type")+" "+rs.getInt("x")+ " " + rs.getInt("y")+" "+rs.getInt("z")+" "+getDisplayName(getUuid(rs.getString("player")))+" "+rs.getString("time"), Formatting.AQUA);
+            }
+        }
+        catch(SQLException e){
+            e.printStackTrace();
+        }
     }
 }       

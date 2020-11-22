@@ -9,7 +9,6 @@ import tech.dttp.block.logger.command.Commands;
 public class BlockLogger implements ModInitializer {
     @Override
     public void onInitialize() {
-
         // Register commands
         CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {
             Commands commands = new Commands();
